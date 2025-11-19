@@ -24,9 +24,13 @@ HEADERS = {"Authorization": f"Bearer {GITHUB_PAT}", "Accept": "application/vnd.g
 
 async def milestone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
-    if len(args) == 0:
-        await update.message.reply_text("usa: /milestone <art|alb|trk> [count]")
+    if not args:
+        await update.message.reply_text(
+            "usa: /milestone <art|alb|trk> [count]",
+            parse_mode="MarkdownV2"
+        )
         return
+
     entity = args[0].lower()
     if entity not in ("art", "alb", "trk"):
         await update.message.reply_text("entity non valida. usa: art | alb | trk")
