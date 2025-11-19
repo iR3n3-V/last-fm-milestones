@@ -112,7 +112,7 @@ def esc_md2(text: str) -> str:
     escape_chars = r'\_*[]()~`>#+-=|{}.!'
     return ''.join(f"\\{c}" if c in escape_chars else c for c in text)
 
-def process_and_display_md(items, entity_type, count):
+def process_and_display(items, entity_type, count):
     milestone_groups = {}
 
     for item in items:
