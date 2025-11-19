@@ -24,6 +24,8 @@ HEADERS = {"Authorization": f"Bearer {GITHUB_PAT}", "Accept": "application/vnd.g
 
 async def milestone(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
+    print("ARGS:", args)
+
     if not args:
         await update.message.reply_text(
             "usa: /milestone <art|alb|trk> [count]",
