@@ -13,11 +13,11 @@ load_dotenv()
 API_URL = "http://ws.audioscrobbler.com/2.0/"
 MIN_SCROBBLE_THRESHOLD = 95
 
-# escape per markdown v2 (per i testi, NON per gli url)
-def esc(s: str) -> str:
-    special = r"\`{}#+-=|.!$()[]"
-    for ch in special:
-        s = s.replace(ch, "\\" + ch)
+# escape HTML (solo i caratteri speciali)
+def esc_html(s: str) -> str:
+    s = s.replace("&", "&amp;")
+    s = s.replace("<", "&lt;")
+    s = s.replace(">", "&gt;")
     return s
 
 def get_api_key():
@@ -42,20 +42,16 @@ def calculate_milestone(scrobble):
         mancanti = 100 - S
         if mancanti <= 5:
             result = {"milestone": 100, "mancanti": mancanti, "tipo": "h"}
-
     elif S >= 100:
         prossima_centinaia = math.ceil(S / 100) * 100
         mancanti = prossima_centinaia - S
-
         if 0 < mancanti <= 20:
             result = {"milestone": prossima_centinaia, "mancanti": mancanti, "tipo": "h"}
-
         if S >= 1000:
             prossima_migliaia = math.ceil(S / 1000) * 1000
             mancanti_k = prossima_migliaia - S
             if 0 < mancanti_k <= 100:
                 result = {"milestone": prossima_migliaia, "mancanti": mancanti_k, "tipo": "k"}
-
     return result
 
 def fetch_lastfm_data(entity_type, username, api_key):
@@ -64,7 +60,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
         "alb": "user.gettopalbums",
         "trk": "user.gettoptracks"
     }
-
     response_key_map = {
         "art": ("topartists", "artist"),
         "alb": ("topalbums", "album"),
@@ -88,7 +83,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
             "limit": limit,
             "page": page
         }
-
         try:
             response = requests.get(API_URL, params=params, timeout=10)
             response.raise_for_status()
@@ -149,65 +143,43 @@ def process_and_display(items, entity_type, count):
         return
 
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
+    type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
-
-        print(f"🏁     Milestone: *{esc(str(target))}* _scrobble_ \\({type_labels.get(entity_type)}\\) \n")
+        print(f"🏁 <b>Milestone: {esc_html(str(target))}</b> _scrobble_ ({type_labels.get(entity_type)})\n")
 
         for item in group:
             plays = item.get("playcount")
             left = item["m_info"]["mancanti"]
-
-            plays_s = esc(str(plays))
-            left_s = esc(str(left))
-
             url = item.get("url", "")
 
-            # artisti
+            plays_s = esc_html(str(plays))
+            left_s = esc_html(str(left))
+
+            # ARTISTI
             if entity_type == "art":
-                name = esc(item.get("name", "n/a"))
-                clickable = f"[*{name}*]({url})" if url else f"*{name}*"
+                name = esc_html(item.get("name", "n/a"))
+                clickable = f'<a href="{url}">{name}</a>' if url else name
+                print(f'🎤 {clickable}\n&nbsp;&nbsp;{plays_s} plays\n&nbsp;&nbsp;{left_s} to milestone\n')
 
-                line = (
-                    f"\\> 🎤     {clickable}\n"
-                    f"\\>             *{plays_s}* _plays_\n"
-                    f"\\>           *{left_s}* _to milestone_ "
-                )
-                print(line + "\n")
-
-            # album
+            # ALBUM
             elif entity_type == "alb":
-                alb_name = esc(item.get("name", "n/a"))
+                alb_name = esc_html(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                clickable = f'<a href="{url}">{alb_name} — {art_name}</a>' if url else f'{alb_name} — {art_name}'
+                print(f'💿 {clickable}\n&nbsp;&nbsp;{plays_s} plays\n&nbsp;&nbsp;{left_s} to milestone\n')
 
-                clickable = f"[*{alb_name}* — _{art_name}_]({url})" if url else f"*{alb_name}* — _{art_name}_"
-
-                line = (
-                    f"\\> 💿 {clickable}\n"
-                    f"\\> *{plays_s}* _plays_\n"
-                    f"\\> *{left_s}* _to milestone_\n"
-                )
-                print(line + "\n")
-
-            # tracce
+            # TRACCE
             elif entity_type == "trk":
-                trk_name = esc(item.get("name", "n/a"))
+                trk_name = esc_html(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
-
-                clickable = f"[*{trk_name}* — _{art_name}_]({url})" if url else f"*{trk_name}* — _{art_name}_"
-
-                line = (
-                    f"\\> 🎵 {clickable}\n"
-                    f"\\> *{plays_s}* _plays_\n"
-                    f"\\> *{left_s}* _to milestone_\n"
-                )
-                print(line + "\n")
+                art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                clickable = f'<a href="{url}">{trk_name} — {art_name}</a>' if url else f'{trk_name} — {art_name}'
+                print(f'🎵 {clickable}\n&nbsp;&nbsp;{plays_s} plays\n&nbsp;&nbsp;{left_s} to milestone\n')
 
         print("\n")
 
@@ -220,13 +192,11 @@ def main():
 
     api_key = get_api_key()
     username = args.username or os.getenv("LASTFM_USERNAME")
-
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
     data = fetch_lastfm_data(args.entity, username, api_key)
-
     if data:
         process_and_display(data, args.entity, args.count)
 
