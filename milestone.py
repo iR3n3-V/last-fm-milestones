@@ -183,62 +183,51 @@ def parse_args():
         help="tipo: art (artist), alb (album), trk (track)"
     )
 
-    # tutti gli altri argomenti posizionali entrano qui
     parser.add_argument(
-        "rest",
-        nargs="*",
-        help="username e/o count (facoltativi)"
+        "count",
+        nargs="?",
+        default=None,
+        help="milestone numerica oppure username se non numerico"
     )
 
-    return parser.parse_args()
+    parser.add_argument(
+        "username",
+        nargs="?",
+        default=None,
+        help="username last.fm (opzionale)"
+    )
 
+    args = parser.parse_args()
 
-def interpret_args(rest):
-    default_username = os.getenv("LASTFM_USERNAME")
+    raw_count = args.count
+    raw_username = args.username
 
-    if len(rest) == 0:
-        # nessun argomento extra
-        return default_username, None
+    # caso 1 → il primo argomento extra è un numero → è count
+    if raw_count is not None and raw_count.isdigit():
+        count = int(raw_count)
+        username = raw_username or os.getenv("LASTFM_USERNAME")
 
-    if len(rest) == 1:
-        only = rest[0]
-        if only.isdigit():
-            # solo count
-            return default_username, int(only)
+    else:
+        # caso 2 → il primo non è un numero → è username
+        username = raw_count or os.getenv("LASTFM_USERNAME")
+        # il secondo può essere il count, se esiste ed è numerico
+        if raw_username is not None and raw_username.isdigit():
+            count = int(raw_username)
         else:
-            # solo username
-            return only, None
+            count = None
 
-    if len(rest) == 2:
-        user = rest[0]
-        cnt = rest[1]
-
-        if not cnt.isdigit():
-            print("❌ errore: il secondo argomento deve essere numerico (count).")
-            sys.exit(1)
-
-        return user, int(cnt)
-
-    print("❌ troppi argomenti. usa: <entity> [username] [count]")
-    sys.exit(1)
+    return args.entity, username, count
 
 
 def main():
-    args = parse_args()
+    entity, username, count = parse_args()
     api_key = get_api_key()
-
-    # interpreta i parametri secondo la logica desiderata
-    username, count = interpret_args(args.rest)
 
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
-    data = fetch_lastfm_data(args.entity, username, api_key)
+    data = fetch_lastfm_data(entity, username, api_key)
     if data:
-        process_and_display(data, args.entity, count)
-
-
-if __name__ == "__main__":
-    main()
+        process_and_display(data, entity, count)
 
