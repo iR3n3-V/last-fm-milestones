@@ -197,8 +197,8 @@ def process_and_display(items, entity_type, count):
 
                 line = (
                     f"> 🎤 *{name}*\n"
-                    f">>   *{plays}* _plays_\n"
-                    f">>>   *{left}* _to milestone_\n"
+                    f"        *{plays}* _plays_\n"
+                    f"        *{left}* _to milestone_\n"
                 )
                 print(escape_md(line) + "\n")
 
