@@ -157,21 +157,21 @@ def process_and_display(items, entity_type, count):
             left_s = esc_html(str(left))
 
             if entity_type == "art":
-                name = esc_html(item.get("name", "n/a"))
+                name = esc_html_text(item.get("name", "n/a"))
                 clickable = f'<a href="{url}">{name}</a>' if url else name
                 print(f'<pre>🎤 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
             elif entity_type == "alb":
-                alb_name = esc_html(item.get("name", "n/a"))
+                alb_name = esc_html_text(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                art_name = esc_html_text(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f'<a href="{url}">{alb_name} — {art_name}</a>' if url else f'{alb_name} — {art_name}'
                 print(f'<pre>💿 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
             elif entity_type == "trk":
-                trk_name = esc_html(item.get("name", "n/a"))
+                trk_name = esc_html_text(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                art_name = esc_html_text(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f'<a href="{url}">{trk_name} — {art_name}</a>' if url else f'{trk_name} — {art_name}'
                 print(f'<pre>🎵 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
