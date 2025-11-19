@@ -158,19 +158,19 @@ def process_and_display(items, entity_type, count):
                 name = esc_md2(item.get("name", "n/a"))
                 url = esc_md2(url)
                 clickable = f"[{name}]({url})" if url else name
-                print(f"> 🎤  *{clickable}*\n>             *{plays}* _plays_\n>             *{left}* _to milestone_ \n")
+                print(f"> 🎤  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f"[{alb_name} — {art_name}]({url})" if url else f"{alb_name} — {art_name}"
-                print(f"> 💿 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+                print(f"> 💿  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
             elif entity_type == "trk":
                 trk_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
-                print(f"> 🎵 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+                print(f"> 🎵  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
 
 
 def main():
