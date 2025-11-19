@@ -37,56 +37,64 @@ jobs:
           python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}" > result.txt || true
           cat result.txt
 
-      - name: send to telegram (multi-message safe markdown)
+      - name: send to telegram (debug & multi-message)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
-          raw="$(cat result.txt)"
+          echo "--- DEBUG: reading result.txt ---"
+          raw="$(cat result.txt || true)"
+          echo "RAW CONTENT:"
+          echo "$raw"
+          echo "--- END RAW ---"
 
-          # escape markdown v2
-          escape_md() {
-            echo "$1" | sed \
-              -e 's/\\/\\\\/g' \
-              -e 's/\_/\\_/g' \
-              -e 's/\*/\\*/g' \
-              -e 's/\[/\\[/g' \
-              -e 's/\]/\\]/g' \
-              -e 's/(/\\(/g' \
-              -e 's/)/\\)/g' \
-              -e 's/\~/\\~/g' \
-              -e 's/\`/\\`/g' \
-              -e 's/\>/\\>/g' \
-              -e 's/\#/\\#/g' \
-              -e 's/\+/\\+/g' \
-              -e 's/\-/\\-/g' \
-              -e 's/\=/\\=/g' \
-              -e 's/\|/\\|/g' \
-              -e 's/{/\\{/g' \
-              -e 's/}/\\}/g' \
-              -e 's/\./\\./g' \
-              -e 's/\!/\\!/g'
-          }
+          if [ -z "$raw" ]; then
+            echo "⚠ raw vuoto, invio messaggio fallback"
+            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+              -d chat_id="${CHAT_ID}" \
+              -d text="⚠ risultato vuoto" \
+              -d parse_mode="MarkdownV2"
+            exit 0
+          fi
 
-          out="$(escape_md "$raw")"
-          MAX=3800    # margine per sicurezza telegram
+          # escape markdown v2 (senza funzioni esterne)
+          echo "--- DEBUG: escaping markdown ---"
+          out="$raw"
+          out="$(echo "$out" | sed 's/\\/\\\\/g')"
+          out="$(echo "$out" | sed 's/\_/\\_/g')"
+          out="$(echo "$out" | sed 's/\*/\\*/g')"
+          out="$(echo "$out" | sed 's/\[/\\[/g')"
+          out="$(echo "$out" | sed 's/\]/\\]/g')"
+          out="$(echo "$out" | sed 's/(/\\(/g')"
+          out="$(echo "$out" | sed 's/)/\\)/g')"
+          out="$(echo "$out" | sed 's/\./\\./g')"
+          out="$(echo "$out" | sed 's/\!/\\!/g')"
+          echo "--- AFTER ESCAPE ---"
+          echo "$out"
+          echo "--- END ESCAPE ---"
 
-          send_part() {
+          MAX=3800
+
+          echo "--- START SENDING MESSAGES ---"
+          while [ ${#out} -gt $MAX ]; do
+            part="${out:0:$MAX}"
+            echo "> sending chunk of ${#part} chars"
+            
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
               -d chat_id="${CHAT_ID}" \
               -d parse_mode="MarkdownV2" \
               -d disable_web_page_preview=true \
-              --data-urlencode "text=$1" > /dev/null
-          }
+              --data-urlencode "text=$part"
 
-          # loop invio multiplo
-          while [ ${#out} -gt $MAX ]; do
-            part="${out:0:$MAX}"
-            send_part "$part"
             out="${out:$MAX}"
             sleep 0.2
           done
 
-          # ultimo messaggio
-          send_part "$out"
+          echo "> sending final chunk of ${#out} chars"
+          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+            -d chat_id="${CHAT_ID}" \
+            -d parse_mode="MarkdownV2" \
+            -d disable_web_page_preview=true \
+            --data-urlencode "text=$out"
 
+          echo "--- DONE ---"
