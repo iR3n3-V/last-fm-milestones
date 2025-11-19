@@ -1,67 +1,32 @@
-#!/usr/bin/env python3
-# bot.py
 import os
-import requests
-from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler
+from flask import Flask, request
 
-load_dotenv()
+telegram_token = os.getenv("TELEGRAM_TOKEN")
+app = Application.builder().token(telegram_token).build()
 
-GITHUB_REPO = os.getenv("REPO")               # es: iR3n3-V/last-fm-milestones
-GITHUB_PAT = os.getenv("PAT")                # PAT con permessi workflow
-WORKFLOW_FILE = os.getenv("WORKFLOW_FILE", "run.yml")
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-USERNAME = "svlaent"
+# comandi esempio
+async def start(update, context):
+    await update.message.reply_text("ciao!")
 
-if not all([GITHUB_REPO, GITHUB_PAT, TELEGRAM_TOKEN]):
-    print("impostare i secrets REPO, PAT e TELEGRAM_TOKEN")
-    exit(1)
+app.add_handler(CommandHandler("start", start))
 
-API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/{WORKFLOW_FILE}/dispatches"
-HEADERS = {"Authorization": f"Bearer {GITHUB_PAT}", "Accept": "application/vnd.github+json"}
+# server flask
+server = Flask(__name__)
 
-async def milestone(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args
-    if len(args) == 0:
-        await update.message.reply_text("usa: /milestone <art|alb|trk> [count]")
-        return
-
-    entity = args[0].lower()
-    if entity not in ("art", "alb", "trk"):
-        await update.message.reply_text("entity non valida. usa: art | alb | trk")
-        return
-
-    count = args[1] if len(args) > 1 else ""
-
-    payload = {
-        "ref": "main",
-        "inputs": {
-            "entity": entity,
-            "count": str(count),
-            "username": USERNAME
-        }
-    }
-
-    r = requests.post(API_URL, json=payload, headers=HEADERS)
-    if r.status_code == 204:
-        await update.message.reply_text("🚀 job avviato! riceverai il risultato su telegram.")
-    else:
-        await update.message.reply_text(f"errore avvio workflow: {r.status_code} {r.text}")
-
-async def main():
-    app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
-    app.add_handler(CommandHandler("milestone", milestone))
-    await app.run_polling()
+@server.post(f"/{telegram_token}")
+def webhook():
+    data = request.get_json(force=True)
+    app.update_queue.put_nowait(app._parse_update(data))
+    return "ok", 200
 
 if __name__ == "__main__":
     import asyncio
+    from telegram import Bot
 
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    bot = Bot(token=telegram_token)
+    url = os.getenv("WEBHOOK_URL")  # es: https://nome-progetto.onrender.com
 
-    loop.run_until_complete(main())
+    asyncio.run(bot.set_webhook(f"{url}/{telegram_token}"))
 
+    server.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
