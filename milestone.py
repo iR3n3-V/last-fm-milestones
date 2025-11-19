@@ -185,12 +185,11 @@ def parse_args():
 def normalize_arg(x):
     if x is None:
         return None
-    if str(x).strip() == "":
-        return None
-    return x
+    x = str(x).strip()
+    return x if x else None
+
 
 def detect_numeric(value):
-    """ritorna int(value) se numerico, altrimenti None."""
     try:
         return int(value)
     except:
@@ -200,42 +199,25 @@ def detect_numeric(value):
 def resolve_inputs(args):
     api_key = get_api_key()
 
-    # normalizziamo gli argomenti ("" → None)
-    arg1 = normalize_arg(args.arg1)
-    arg2 = normalize_arg(args.arg2)
+    # normalizza
+    a1 = normalize_arg(args.arg1)
+    a2 = normalize_arg(args.arg2)
+
+    raw_args = [x for x in [a1, a2] if x is not None]
 
     count = None
     username = None
 
-    # caso 1: nessun argomento extra
-    if arg1 is None and arg2 is None:
+    for arg in raw_args:
+        n = detect_numeric(arg)
+        if n is not None and count is None:
+            count = n
+        elif username is None:
+            username = arg
+
+    # fallback username → .env
+    if not username:
         username = os.getenv("LASTFM_USERNAME")
-
-    # caso 2: solo arg1 presente
-    elif arg1 is not None and arg2 is None:
-        numeric = detect_numeric(arg1)
-        if numeric is not None:
-            count = numeric
-            username = os.getenv("LASTFM_USERNAME")
-        else:
-            username = arg1
-
-    # caso 3: arg1 e arg2 presenti
-    else:
-        # prova ad interpretare arg1 come numero
-        numeric1 = detect_numeric(arg1)
-        if numeric1 is not None:
-            count = numeric1
-            username = arg2
-        else:
-            # caso: primo è username
-            username = arg1
-            numeric2 = detect_numeric(arg2)
-            if numeric2 is not None:
-                count = numeric2
-            else:
-                print("❌ errore: impossibile interpretare count/username negli argomenti.")
-                sys.exit(1)
 
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
