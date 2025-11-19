@@ -141,12 +141,13 @@ def process_and_display_md(items, entity_type, count):
         return
 
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
+    type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"*Milestone: {target}* (scrobble)\n")
+        print(f"🏁  *Milestone: {target}* (scrobble) (_{type_labels.get(entity_type)}_) \n")
 
         for item in group:
             plays = item.get("playcount")
@@ -156,7 +157,7 @@ def process_and_display_md(items, entity_type, count):
             if entity_type == "art":
                 name = esc_md2(item.get("name", "n/a"))
                 clickable = f"[{name}]({url})" if url else name
-                print(f"> 🎤 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+                print(f"> 🎤  *{clickable}*\n> *{plays}* _plays_\n> *{left}* _to milestone_ \n")
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
