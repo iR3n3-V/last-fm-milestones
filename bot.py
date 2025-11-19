@@ -12,6 +12,7 @@ REPO = os.getenv("GITHUB_REPO")        # es: "tuouser/tuorepo"
 PAT = os.getenv("GITHUB_PAT")          # personal access token con permessi workflow
 WORKFLOW_FILE = os.getenv("WORKFLOW_FILE", "run.yml")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 USERNAME = "svlaent"  # fisso
 
 if not all([GITHUB_REPO, GITHUB_PAT, TELEGRAM_TOKEN]):
