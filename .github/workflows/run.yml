@@ -1,4 +1,4 @@
-name: telegram bot runner
+name: bot starter
 
 on:
   workflow_dispatch:
