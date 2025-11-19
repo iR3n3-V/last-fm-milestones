@@ -59,16 +59,28 @@ jobs:
 
           # escape markdown v2 (senza funzioni esterne)
           echo "--- DEBUG: escaping markdown ---"
+          # escape markdown v2 (full set)
           out="$raw"
-          out="$(echo "$out" | sed 's/\\/\\\\/g')"
-          out="$(echo "$out" | sed 's/\_/\\_/g')"
-          out="$(echo "$out" | sed 's/\*/\\*/g')"
-          out="$(echo "$out" | sed 's/\[/\\[/g')"
-          out="$(echo "$out" | sed 's/\]/\\]/g')"
-          out="$(echo "$out" | sed 's/(/\\(/g')"
-          out="$(echo "$out" | sed 's/)/\\)/g')"
-          out="$(echo "$out" | sed 's/\./\\./g')"
-          out="$(echo "$out" | sed 's/\!/\\!/g')"
+          out="$(echo "$out" | sed 's/\\/\\\\/g')"     # \
+          out="$(echo "$out" | sed 's/\_/\\_/g')"      # _
+          out="$(echo "$out" | sed 's/\*/\\*/g')"      # *
+          out="$(echo "$out" | sed 's/\[/\\[/g')"      # [
+          out="$(echo "$out" | sed 's/\]/\\]/g')"      # ]
+          out="$(echo "$out" | sed 's/(/\\(/g')"       # (
+          out="$(echo "$out" | sed 's/)/\\)/g')"       # )
+          out="$(echo "$out" | sed 's/\./\\./g')"      # .
+          out="$(echo "$out" | sed 's/\!/\\!/g')"      # !
+          out="$(echo "$out" | sed 's/\+/\\+/g')"      # + 
+          out="$(echo "$out" | sed 's/\-/\\-/g')"      # -
+          out="$(echo "$out" | sed 's/\=/\\=/g')"      # =
+          out="$(echo "$out" | sed 's/\~/\\~/g')"      # ~
+          out="$(echo "$out" | sed 's/\`/\\`/g')"      # `
+          out="$(echo "$out" | sed 's/>/\\>/g')"       # >
+          out="$(echo "$out" | sed 's/#/\\#/g')"       # #
+          out="$(echo "$out" | sed 's/|/\\|/g')"       # |
+          out="$(echo "$out" | sed 's/{/\\{/g')"       # {
+          out="$(echo "$out" | sed 's/}/\\}/g')"       # }
+
           echo "--- AFTER ESCAPE ---"
           echo "$out"
           echo "--- END ESCAPE ---"
