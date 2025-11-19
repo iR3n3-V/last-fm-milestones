@@ -156,7 +156,7 @@ def process_and_display(items, entity_type, count):
 
         type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
-        print(f"🏁 milestone: *{esc(str(target))}* scrobble \\({type_labels.get(entity_type)}\\) \n")
+        print(f"🏁     Milestone: *{esc(str(target))}* _scrobble_ \\({type_labels.get(entity_type)}\\) \n")
 
         for item in group:
             plays = item.get("playcount")
@@ -173,9 +173,9 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[*{name}*]({url})" if url else f"*{name}*"
 
                 line = (
-                    f"> 🎤 {clickable}\n"
-                    f">> *{plays_s}* _plays_\n"
-                    f">>> *{left_s}* _to milestone_\n"
+                    f"> 🎤     {clickable}\n"
+                    f">>             *{plays_s}* _plays_\n"
+                    f">>>             *{left_s}* _to milestone_\n"
                 )
                 print(line + "\n")
 
