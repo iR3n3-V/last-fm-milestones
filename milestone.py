@@ -192,42 +192,39 @@ def detect_numeric(value):
 
 
 def resolve_inputs(args):
-    """
-    logica:
-    /milestone art 400              -> entity=art,   count=400, username=.env
-    /milestone art giuliarescigno   -> entity=art,   count=None, username='giuliarescigno'
-    /milestone art 400 giulia       -> entity=art,   count=400, username='giulia'
-    /milestone art giulia 400       -> entity=art,   count=400, username='giulia'
-    """
     api_key = get_api_key()
+
+    # normalizziamo gli argomenti ("" → None)
+    arg1 = normalize_arg(args.arg1)
+    arg2 = normalize_arg(args.arg2)
 
     count = None
     username = None
 
-    # caso 1: nessun argomento extra → solo entity
-    if args.arg1 is None:
+    # caso 1: nessun argomento extra
+    if arg1 is None and arg2 is None:
         username = os.getenv("LASTFM_USERNAME")
 
-    # caso 2: un argomento extra
-    elif args.arg2 is None:
-        numeric = detect_numeric(args.arg1)
+    # caso 2: solo arg1 presente
+    elif arg1 is not None and arg2 is None:
+        numeric = detect_numeric(arg1)
         if numeric is not None:
             count = numeric
             username = os.getenv("LASTFM_USERNAME")
         else:
-            username = args.arg1
+            username = arg1
 
-    # caso 3: due argomenti extra
+    # caso 3: arg1 e arg2 presenti
     else:
-        # prova a interpretare il primo come numero
-        numeric = detect_numeric(args.arg1)
-        if numeric is not None:
-            count = numeric
-            username = args.arg2
+        # prova ad interpretare arg1 come numero
+        numeric1 = detect_numeric(arg1)
+        if numeric1 is not None:
+            count = numeric1
+            username = arg2
         else:
-            # primo è username, secondo *potrebbe* essere numero
-            username = args.arg1
-            numeric2 = detect_numeric(args.arg2)
+            # caso: primo è username
+            username = arg1
+            numeric2 = detect_numeric(arg2)
             if numeric2 is not None:
                 count = numeric2
             else:
@@ -239,6 +236,7 @@ def resolve_inputs(args):
         sys.exit(1)
 
     return api_key, username, count
+
 
 def main():
     args = parse_args()
