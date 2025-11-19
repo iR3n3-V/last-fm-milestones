@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: set env
+        run: echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> $GITHUB_ENV
+
       - name: install requirements
         run: |
           python -m pip install --upgrade pip
