@@ -61,7 +61,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
     page = 1
     limit = 200
     keep_fetching = True
-    print(f"📡 scaricamento dati per l'utente: {username} ({entity_type})...")
     while keep_fetching:
         params = {
             'method': method,
@@ -89,7 +88,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
         except (IndexError, KeyError, ValueError):
             last_item_playcount = 0
         all_items.extend(items)
-        print(f"   ...pagina {page} scaricata (ultimo playcount: {last_item_playcount})")
         if last_item_playcount < MIN_SCROBBLE_THRESHOLD:
             keep_fetching = False
         else:
@@ -99,7 +97,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
 
 def process_and_display(items, entity_type, count):
     milestone_groups = {}
-    print("\n🔍 analisi dei risultati...")
     for item in items:
         try:
             playcount = int(item.get('playcount', 0))
@@ -128,7 +125,7 @@ def process_and_display(items, entity_type, count):
         m_type = group[0]['m_info']['tipo']
         type_label = "nuova migliaia" if m_type == 'k' else "nuova centinaia/traguardo"
         print("-" * 60)
-        print(f"## 🏁 milestone {target} scrobble ({type_label})")
+        print(f"    🏁 milestone {target} scrobble ({type_label})")
         for item in group:
             plays = item.get('playcount')
             left = item['m_info']['mancanti']
