@@ -143,11 +143,12 @@ def process_and_display(items, entity_type, count):
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
     type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
+    print(f"_Sto filtrando per: *{type_labels.get(entity_type)}*_\n")
+
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"_{type_labels.get(entity_type)}_\n")
         print(f"🏁  *Milestone: {target}* scrobble \n")
 
         for item in group:
