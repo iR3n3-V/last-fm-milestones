@@ -157,7 +157,7 @@ def process_and_display(items, entity_type, count):
             if entity_type == "art":
                 name = esc_md2(item.get("name", "n/a"))
                 clickable = f"[{name}]({url})" if url else name
-                print(f"> 🎤  *{clickable}*\n> *{plays}* _plays_\n> *{left}* _to milestone_ \n")
+                print(f"> 🎤  *{clickable}*\n>             *{plays}* _plays_\n>             *{left}* _to milestone_ \n")
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
