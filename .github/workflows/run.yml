@@ -61,5 +61,3 @@ jobs:
           # ultima parte
           send_part "$out"
 
-          fi
-
