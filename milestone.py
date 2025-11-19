@@ -159,29 +159,24 @@ def process_and_display(items, entity_type, count):
             plays_s = esc_html(str(plays))
             left_s = esc_html(str(left))
 
-            # ARTISTI
             if entity_type == "art":
                 name = esc_html(item.get("name", "n/a"))
                 clickable = f'<a href="{url}">{name}</a>' if url else name
-                print(f'🎤 <b>{clickable}</b>\n       <b>{plays_s}</b> <i>plays</i>\n        <b>{left_s}</b> <i>to milestone</i>\n')
+                print(f'<pre>🎤 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
-            # ALBUM
             elif entity_type == "alb":
                 alb_name = esc_html(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f'<a href="{url}">{alb_name} — {art_name}</a>' if url else f'{alb_name} — {art_name}'
-                print(f'💿 {clickable}\n&nbsp;&nbsp;{plays_s} plays\n&nbsp;&nbsp;{left_s} to milestone\n')
+                print(f'<pre>💿 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
-            # TRACCE
             elif entity_type == "trk":
                 trk_name = esc_html(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_html(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
                 clickable = f'<a href="{url}">{trk_name} — {art_name}</a>' if url else f'{trk_name} — {art_name}'
-                print(f'🎵 {clickable}\n&nbsp;&nbsp;{plays_s} plays\n&nbsp;&nbsp;{left_s} to milestone\n')
-
-        print("\n")
+                print(f'<pre>🎵 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
