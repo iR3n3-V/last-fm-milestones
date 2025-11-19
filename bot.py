@@ -28,8 +28,7 @@ async def milestone(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not args:
         await update.message.reply_text(
-            "usa: /milestone <art|alb|trk> [count]",
-            parse_mode="MarkdownV2"
+            "usa: /milestone <art|alb|trk> [count]"
         )
         return
 
