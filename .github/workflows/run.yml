@@ -30,37 +30,33 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: run script and send to telegram (MarkdownV2)
+      - name: run script and capture output
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+        run: |
+          python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}" > result.txt || true
+          cat result.txt
+
+      - name: run script and send to telegram (HTML, chunked)
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
-          chunk_size=3800
-
-          # esegui python e salva output
+          chunk_size=3800  # massimo sicuro per Telegram
           raw="$(python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}")"
 
-          current_chunk=""
-          IFS=$'\n\n'
-          for block in $raw; do
-            block="${block//$'\n'/\\n}"  # preserva newline per MarkdownV2
-            if [ ${#current_chunk} -gt 0 ] && [ $((${#current_chunk} + ${#block})) -gt $chunk_size ]; then
-              curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
-                -d chat_id="${CHAT_ID}" \
-                -d parse_mode="MarkdownV2" \
-                -d disable_web_page_preview=true \
-                --data-urlencode "text=$current_chunk"
-              current_chunk=""
-              sleep 0.2
-            fi
-            current_chunk+="$block"$'\n\n'
-          done
+          total_length=${#raw}
+          i=0
 
-          if [ ${#current_chunk} -gt 0 ]; then
+          while [ $i -lt $total_length ]; do
+            chunk="${raw:$i:$chunk_size}"
+            echo "sending chunk $i / $total_length"
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
               -d chat_id="${CHAT_ID}" \
               -d parse_mode="MarkdownV2" \
               -d disable_web_page_preview=true \
-              --data-urlencode "text=$current_chunk"
-          fi
+              --data-urlencode "text=$chunk"
+            i=$((i + chunk_size))
+            sleep 0.2
+          done
