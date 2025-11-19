@@ -36,18 +36,19 @@ jobs:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_USERNAME: ${{ secrets.LASTFM_USERNAME }}
         run: |
-          args="${{ github.event.inputs.entity }}"
-      
-          if [ -n "${{ github.event.inputs.count }}" ]; then
-              args="$args ${{ github.event.inputs.count }}"
+          entity="${{ github.event.inputs.entity }}"
+          count="${{ github.event.inputs.count }}"
+          username="${{ github.event.inputs.username }}"
+          
+          # se count non è impostato → passa stringa vuota
+          if [ -z "$count" ]; then
+              count=""
           fi
-      
-          if [ -n "${{ github.event.inputs.username }}" ]; then
-              args="$args -u ${{ github.event.inputs.username }}"
-          fi
-      
-          python milestone.py $args > result.txt || true
-          cat result.txt
+          
+          args="$entity" 
+          args="$args $count"
+          args="$args $username"
+
 
 
       - name: run script and send to telegram (HTML, chunked)
