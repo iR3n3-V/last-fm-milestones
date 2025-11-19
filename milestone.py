@@ -173,9 +173,9 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[*{name}*]({url})" if url else f"*{name}*"
 
                 line = (
-                    f"> 🎤     {clickable}\n"
-                    f">>             *{plays_s}* _plays_\n"
-                    f">>>             *{left_s}* _to milestone_ "
+                    f"\\> 🎤     {clickable}\n"
+                    f"\\>>             *{plays_s}* _plays_\n"
+                    f"\\>>>             *{left_s}* _to milestone_ "
                 )
                 print(line + "\n")
 
