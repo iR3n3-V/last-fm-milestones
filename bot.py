@@ -58,10 +58,10 @@ if __name__ == "__main__":
     import asyncio
 
     try:
-        asyncio.run(main())
-    except RuntimeError:
-        # fallback per ambienti dove il loop è già aperto (GitHub Actions)
         loop = asyncio.get_event_loop()
-        loop.create_task(main())
-        loop.run_forever()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(main())
 
