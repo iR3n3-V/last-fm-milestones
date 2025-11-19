@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# milestone.py
 import argparse
 import os
 import sys
@@ -25,12 +24,9 @@ def calculate_milestone(scrobble):
         S = int(scrobble)
     except (ValueError, TypeError):
         return None
-
     if S < 95:
         return None
-
     result = None
-
     if 95 <= S < 100:
         mancanti = 100 - S
         if mancanti <= 5:
@@ -58,7 +54,6 @@ def fetch_lastfm_data(entity_type, username, api_key):
         "alb": ("topalbums", "album"),
         "trk": ("toptracks", "track")
     }
-
     method = method_map[entity_type]
     root_key, list_key = response_key_map[entity_type]
 
@@ -112,26 +107,31 @@ def esc_md2(text: str) -> str:
     escape_chars = r'\_*[]()~`>#+-=|{}.!'
     return ''.join(f"\\{c}" if c in escape_chars else c for c in text)
 
+def format_block_md2(clickable, plays, left):
+    """Genera un blocco quote completo per MarkdownV2"""
+    lines = [
+        f"> {clickable}",
+        f"> *{plays}* _plays_",
+        f"> *{left}* _to milestone_"
+    ]
+    return "\n".join(lines)
+
 def process_and_display(items, entity_type, count):
     milestone_groups = {}
-
     for item in items:
         try:
             playcount = int(item.get("playcount", 0))
         except:
             continue
-
         m_info = calculate_milestone(playcount)
         if not m_info:
             continue
-
         if count is not None:
             try:
                 if m_info["milestone"] != int(count):
                     continue
             except:
                 pass
-
         item["m_info"] = m_info
         target = m_info["milestone"]
         milestone_groups.setdefault(target, []).append(item)
@@ -143,11 +143,13 @@ def process_and_display(items, entity_type, count):
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
     type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
+    all_blocks = []
+
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"🏁  *Milestone: {target}* scrobble \\(_{type_labels.get(entity_type)}_\\) \n")
+        all_blocks.append(f"*Milestone: {target}* scrobble \\(_{type_labels.get(entity_type)}_\\)")
 
         for item in group:
             plays = item.get("playcount")
@@ -155,23 +157,27 @@ def process_and_display(items, entity_type, count):
             url = item.get("url", "")
 
             if entity_type == "art":
-                name = esc_md2(item.get("name", "n/a"))
-                url = esc_md2(url)
-                clickable = f"[{name}]({url})" if url else name
-                print(f"> 🎤  *{clickable}*\n>             *{plays}* _plays_\n>             *{left}* _to milestone_ \n")
+                name_md = esc_md2(item.get("name", "n/a"))
+                url_md = esc_md2(url)
+                clickable = f"[{name_md}]({url_md})" if url else name_md
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
-                clickable = f"[{alb_name} — {art_name}]({url})" if url else f"{alb_name} — {art_name}"
-                print(f"> 💿 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+                url_md = esc_md2(url)
+                clickable = f"[{alb_name} — {art_name}]({url_md})" if url else f"{alb_name} — {art_name}"
             elif entity_type == "trk":
                 trk_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
-                clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
-                print(f"> 🎵 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+                url_md = esc_md2(url)
+                clickable = f"[{trk_name} — {art_name}]({url_md})" if url else f"{trk_name} — {art_name}"
 
+            block = format_block_md2(clickable, plays, left)
+            all_blocks.append(block)
+
+    # output finale con blocchi separati da doppio newline
+    print("\n\n".join(all_blocks))
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
