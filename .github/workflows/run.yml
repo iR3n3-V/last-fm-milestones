@@ -43,19 +43,20 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
-          chunk_size=3800
+          safe_chunk_size=3700  # margine per evitare taglio MarkdownV2
           raw="$(python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}")"
           
           current_chunk=""
           block=""
           
           while IFS= read -r line; do
-              # se la riga inizia con un simbolo, significa nuovo blocco
+              # inizio nuovo blocco se la riga inizia con simbolo
               if [[ "$line" =~ ^(🎤|💿|🎵) ]]; then
-                  # invia il blocco precedente se aggiungerlo al chunk supera chunk_size
                   if [ -n "$block" ]; then
-                      if [ $(( ${#current_chunk} + ${#block} )) -ge $chunk_size ]; then
-                          echo "sending chunk..."
+                      if [ $(( ${#current_chunk} + ${#block} )) -ge $safe_chunk_size ]; then
+                          echo "---- CHUNK START ----"
+                          echo "$current_chunk"
+                          echo "---- CHUNK END ----"
                           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                               -d chat_id="${CHAT_ID}" \
                               -d parse_mode="MarkdownV2" \
@@ -67,30 +68,35 @@ jobs:
                           current_chunk+="$block"
                       fi
                   fi
-                  block="$line"$'\n'  # nuovo blocco
+                  block="$line"$'\n'
               else
                   block+="$line"$'\n'
               fi
           done <<< "$raw"
           
-          # aggiungi l'ultimo blocco rimasto
+          # invio ultimo blocco
           if [ -n "$block" ]; then
-              if [ $(( ${#current_chunk} + ${#block} )) -ge $chunk_size ]; then
-                  echo "sending chunk..."
+              if [ $(( ${#current_chunk} + ${#block} )) -ge $safe_chunk_size ]; then
+                  echo "---- CHUNK START ----"
+                  echo "$current_chunk"
+                  echo "---- CHUNK END ----"
                   curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                       -d chat_id="${CHAT_ID}" \
                       -d parse_mode="MarkdownV2" \
                       -d disable_web_page_preview=true \
                       --data-urlencode "text=$current_chunk"
-                  current_chunk="$block"
                   sleep 0.2
+                  current_chunk="$block"
               else
                   current_chunk+="$block"
               fi
           fi
           
-          # invia il chunk finale
+          # invia chunk finale
           if [ -n "$current_chunk" ]; then
+              echo "---- CHUNK START ----"
+              echo "$current_chunk"
+              echo "---- CHUNK END ----"
               curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                   -d chat_id="${CHAT_ID}" \
                   -d parse_mode="MarkdownV2" \
@@ -98,3 +104,4 @@ jobs:
                   --data-urlencode "text=$current_chunk"
           fi
           
+                    
