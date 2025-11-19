@@ -49,20 +49,24 @@ jobs:
           current_chunk=""
           block=""
           
+          # legge linea per linea e raggruppa in blocchi logici
           while IFS= read -r line; do
-              # inizio nuovo blocco se la riga inizia con simbolo
-              if [[ "$line" =~ ^(🎤|💿|🎵) ]]; then
+              # nuovo blocco se la riga inizia con 🎤, 💿 o 🎵 oppure con 🏁 (Milestone)
+              if [[ "$line" =~ ^(🎤|💿|🎵|🏁) ]]; then
                   if [ -n "$block" ]; then
+                      # se aggiungendo il blocco corrente superiamo safe_chunk_size, inviamo chunk
                       if [ $(( ${#current_chunk} + ${#block} )) -ge $safe_chunk_size ]; then
                           echo "---- CHUNK START ----"
                           echo "$current_chunk"
                           echo "---- CHUNK END ----"
+          
                           curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                               -d chat_id="${CHAT_ID}" \
                               -d parse_mode="MarkdownV2" \
                               -d disable_web_page_preview=true \
                               --data-urlencode "text=$current_chunk"
                           sleep 0.2
+          
                           current_chunk="$block"
                       else
                           current_chunk+="$block"
@@ -74,12 +78,13 @@ jobs:
               fi
           done <<< "$raw"
           
-          # invio ultimo blocco
+          # aggiungi ultimo blocco
           if [ -n "$block" ]; then
               if [ $(( ${#current_chunk} + ${#block} )) -ge $safe_chunk_size ]; then
                   echo "---- CHUNK START ----"
                   echo "$current_chunk"
                   echo "---- CHUNK END ----"
+          
                   curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                       -d chat_id="${CHAT_ID}" \
                       -d parse_mode="MarkdownV2" \
@@ -97,11 +102,10 @@ jobs:
               echo "---- CHUNK START ----"
               echo "$current_chunk"
               echo "---- CHUNK END ----"
+          
               curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
                   -d chat_id="${CHAT_ID}" \
                   -d parse_mode="MarkdownV2" \
                   -d disable_web_page_preview=true \
                   --data-urlencode "text=$current_chunk"
           fi
-          
-                    
