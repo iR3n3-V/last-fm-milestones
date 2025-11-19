@@ -175,26 +175,19 @@ def process_and_display(items, entity_type, count):
 
 def parse_args():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
+
     parser.add_argument("entity", choices=["art", "alb", "trk"])
+
+    # argomenti posizionali (compatibilità)
     parser.add_argument("arg1", nargs="?", default=None,
                         help="milestone O username")
     parser.add_argument("arg2", nargs="?", default=None,
                         help="username opzionale")
+
+    # nuovo flag -u
+    parser.add_argument("-u", "--username", help="username last.fm")
+
     return parser.parse_args()
-
-def normalize_arg(x):
-    if x is None:
-        return None
-    x = str(x).strip()
-    return x if x else None
-
-
-def detect_numeric(value):
-    try:
-        return int(value)
-    except:
-        return None
-
 
 def resolve_inputs(args):
     api_key = get_api_key()
@@ -202,28 +195,39 @@ def resolve_inputs(args):
     # normalizza
     a1 = normalize_arg(args.arg1)
     a2 = normalize_arg(args.arg2)
-
     raw_args = [x for x in [a1, a2] if x is not None]
 
     count = None
     username = None
 
-    for arg in raw_args:
-        n = detect_numeric(arg)
-        if n is not None and count is None:
-            count = n
-        elif username is None:
-            username = arg
+    # 1️⃣ username dal flag -u (PRIORITARIO)
+    if args.username:
+        username = args.username
 
-    # fallback username → .env
+    # 2️⃣ username dai posizionali (fallback)
+    if not username:
+        for arg in raw_args:
+            if detect_numeric(arg) is None:  # non è numero → username
+                username = arg
+                break
+
+    # 3️⃣ fallback su .env
     if not username:
         username = os.getenv("LASTFM_USERNAME")
 
     if not username:
-        print("❌ errore: username non specificato\\. imposta LASTFM_USERNAME nel \\.env o passalo come arg\\.")
+        print("❌ errore: username non specificato. usa -u o imposta LASTFM_USERNAME nel .env")
         sys.exit(1)
 
+    # 4️⃣ count (solo posizionali, come prima)
+    for arg in raw_args:
+        n = detect_numeric(arg)
+        if n is not None:
+            count = n
+            break
+
     return api_key, username, count
+
 
 
 def main():
