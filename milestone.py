@@ -173,82 +173,23 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
                 print(f"> 🎵  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="last.fm milestone tracker")
-
-    parser.add_argument(
-        "entity",
-        choices=["art", "alb", "trk"],
-        help="tipo: art (artist), alb (album), trk (track)"
-    )
-
-    parser.add_argument(
-        "arg2",
-        nargs="?",
-        default=None,
-        help="username oppure count"
-    )
-
-    parser.add_argument(
-        "arg3",
-        nargs="?",
-        default=None,
-        help="count opzionale"
-    )
-
-    return parser.parse_args()
-
-
-def interpret_args(entity, arg2, arg3):
-    """
-    logica:
-      entity è sempre il primo
-      se arg2 è numerico → è count
-      se arg2 NON è numerico → è username
-      se arg3 esiste → è count
-    """
-
-    default_username = os.getenv("LASTFM_USERNAME")
-
-    # caso: solo entity
-    if arg2 is None:
-        return default_username, None
-
-    # caso: entity + (username O count)
-    if arg3 is None:
-        if arg2.isdigit():
-            # secondo argomento ≈ count
-            return default_username, int(arg2)
-        else:
-            # secondo argomento ≈ username
-            return arg2, None
-
-    # caso: entity + username + count
-    if not arg3.isdigit():
-        print("❌ errore: il terzo argomento (count) deve essere numerico.")
-        sys.exit(1)
-
-    return arg2, int(arg3)
-
-
 
 def main():
-    args = parse_args()
+    parser = argparse.ArgumentParser(description="last.fm milestone tracker")
+    parser.add_argument("entity", choices=["art", "alb", "trk"])
+    parser.add_argument("count", nargs="?", default=None, help="milestone numerica (es: 100, 1000)")
+    parser.add_argument("username", nargs="?", default=None, help="username last.fm (cadere su .env se assente)")
+    args = parser.parse_args()
+
     api_key = get_api_key()
-
-    username, count = interpret_args(args.entity, args.arg2, args.arg3)
-
+    username = args.username or os.getenv("LASTFM_USERNAME")
     if not username:
-        print("❌ errore: username non specificato. mettilo nel .env oppure passalo come argomento.")
+        print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
     data = fetch_lastfm_data(args.entity, username, api_key)
+    if data:
+        process_and_display(data, args.entity, args.count)
 
-    if not data:
-        print("❌ nessun dato ottenuto da last.fm.")
-        return
-
-    process_and_display(data, args.entity, count)
-
-
-
+if __name__ == "__main__":
+    main()
