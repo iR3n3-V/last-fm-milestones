@@ -37,74 +37,32 @@ jobs:
           python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}" > result.txt || true
           cat result.txt
 
-      - name: send to telegram (debug & multi-message)
+      - name: send to telegram (HTML, chunked)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
-          echo "--- DEBUG: reading result.txt ---"
-          raw="$(cat result.txt || true)"
-          echo "RAW CONTENT:"
-          echo "$raw"
-          echo "--- END RAW ---"
+          raw="$(cat result.txt)"
+          chunk_size=3800  # margine di sicurezza per Telegram
 
-          if [ -z "$raw" ]; then
-            echo "⚠ raw vuoto, invio messaggio fallback"
+          # escape minima per HTML
+          escape_html() {
+            sed -e 's/&/\&amp;/g' \
+                -e 's/</\&lt;/g' \
+                -e 's/>/\&gt;/g'
+          }
+
+          i=0
+          while [ $i -lt ${#raw} ]; do
+            chunk="${raw:$i:$chunk_size}"
+            esc_chunk="$(printf "%s" "$chunk" | escape_html)"
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
               -d chat_id="${CHAT_ID}" \
-              -d text="⚠ risultato vuoto" \
-              -d parse_mode="MarkdownV2"
-            exit 0
-          fi
-
-          # escape markdown v2 (senza funzioni esterne)
-          echo "--- DEBUG: escaping markdown ---"
-          # escape markdown v2 (full set)
-          out="$raw"
-          out="$(echo "$out" | sed 's/\\/\\\\/g')"     # \
-          out="$(echo "$out" | sed 's/\[/\\[/g')"      # [
-          out="$(echo "$out" | sed 's/\]/\\]/g')"      # ]
-          out="$(echo "$out" | sed 's/(/\\(/g')"       # (
-          out="$(echo "$out" | sed 's/)/\\)/g')"       # )
-          out="$(echo "$out" | sed 's/\./\\./g')"      # .
-          out="$(echo "$out" | sed 's/\!/\\!/g')"      # !
-          out="$(echo "$out" | sed 's/\+/\\+/g')"      # + 
-          out="$(echo "$out" | sed 's/\-/\\-/g')"      # -
-          out="$(echo "$out" | sed 's/\=/\\=/g')"      # =
-          out="$(echo "$out" | sed 's/\~/\\~/g')"      # ~
-          out="$(echo "$out" | sed 's/\`/\\`/g')"      # `
-          out="$(echo "$out" | sed 's/#/\\#/g')"       # #
-          out="$(echo "$out" | sed 's/|/\\|/g')"       # |
-          out="$(echo "$out" | sed 's/{/\\{/g')"       # {
-          out="$(echo "$out" | sed 's/}/\\}/g')"       # }
-
-          echo "--- AFTER ESCAPE ---"
-          echo "$out"
-          echo "--- END ESCAPE ---"
-
-          MAX=3800
-
-          echo "--- START SENDING MESSAGES ---"
-          while [ ${#out} -gt $MAX ]; do
-            part="${out:0:$MAX}"
-            echo "> sending chunk of ${#part} chars"
-            
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
-              -d chat_id="${CHAT_ID}" \
-              -d parse_mode="MarkdownV2" \
+              -d parse_mode="HTML" \
               -d disable_web_page_preview=true \
-              --data-urlencode "text=$part"
-
-            out="${out:$MAX}"
-            sleep 0.2
+              --data-urlencode "text=${esc_chunk}"
+            i=$((i + chunk_size))
+            sleep 0.5
           done
 
-          echo "> sending final chunk of ${#out} chars"
-          curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
-            -d chat_id="${CHAT_ID}" \
-            -d parse_mode="MarkdownV2" \
-            -d disable_web_page_preview=true \
-            --data-urlencode "text=$out"
-
-          echo "--- DONE ---"
 
