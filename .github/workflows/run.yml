@@ -1,61 +1,27 @@
-name: run milestone
-
-env:
-  REPO: ${{ secrets.REPO }}
-  PAT: ${{ secrets.PAT }}
-  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+name: telegram bot runner
 
 on:
   workflow_dispatch:
-    inputs:
-      entity:
-        description: "art | alb | trk"
-        required: true
-      count:
-        description: "optional milestone (es: 100)"
-        required: false
-      username:
-        description: "username last.fm"
-        required: true
 
 jobs:
-  run-milestone:
+  run-bot:
     runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
 
-      - name: setup python
-        uses: actions/setup-python@v5
+    env:
+      REPO: ${{ secrets.REPO }}
+      PAT: ${{ secrets.PAT }}
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up python
+        uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: set env
-        run: echo "LASTFM_API_KEY=${{ secrets.LASTFM_API_KEY }}" >> $GITHUB_ENV
+      - name: install deps
+        run: pip install python-dotenv python-telegram-bot requests
 
-      - name: install requirements
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: run script and capture output
-        run: |
-          python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}" > result.txt || true
-          cat result.txt
-
-      - name: send to telegram (message or file if too large)
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: |
-          out="$(cat result.txt)"
-          # telegram max message length ~4096. se più lungo, invia come file
-          if [ "${#out}" -lt 4000 ]; then
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
-              -d chat_id="${CHAT_ID}" \
-              --data-urlencode "text=$out"
-          else
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument" \
-              -F chat_id="${CHAT_ID}" \
-              -F document=@result.txt
-          fi
+      - name: run bot
+        run: python bot.py
