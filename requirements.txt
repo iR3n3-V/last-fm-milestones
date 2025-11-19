@@ -1,3 +1,4 @@
 requests>=2.28
 python-dotenv>=0.21
-python-telegram-bot>=20.0
+python-telegram-bot==21.4
+flask
