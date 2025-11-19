@@ -1,34 +1,27 @@
-name: telegram bot runner
+name: bot starter
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"   # ogni 6 ore restart automatico
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 350     # poco meno di 6h (360 min)
-    
+
+    env:
+      REPO: ${{ secrets.REPO }}
+      PAT: ${{ secrets.PAT }}
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v4
-      
-      - name: setup python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+
+      - name: set up python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: install deps
-        run: pip install -r requirements.txt
-
-      - name: export secrets
-        run: |
-          echo "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> $GITHUB_ENV
-          echo "GITHUB_REPO=${{ secrets.GITHUB_REPO }}" >> $GITHUB_ENV
-          echo "GITHUB_PAT=${{ secrets.GITHUB_PAT }}" >> $GITHUB_ENV
-          echo "WORKFLOW_FILE=${{ secrets.WORKFLOW_FILE }}" >> $GITHUB_ENV
+        run: pip install python-dotenv python-telegram-bot requests
 
       - name: run bot
-        run: |
-          python bot.py
+        run: python bot.py
