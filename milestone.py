@@ -143,7 +143,7 @@ def process_and_display(items, entity_type, count, username):
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
     type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
-    print(f"_Stai vedendo le milestone dell'utente: *{username}*_\n")
+    print(f"_Stai vedendo le milestone dell'utente: *{username}*_")
     print(f"_Sto filtrando per: *{type_labels.get(entity_type)}*_\n")
 
     for target in sorted_targets:
@@ -161,7 +161,7 @@ def process_and_display(items, entity_type, count, username):
                 name = esc_md2(item.get("name", "n/a"))
                 url = esc_md2(url)
                 clickable = f"[{name}]({url})" if url else name
-                print(f"> 🎤  {clickable}\n>             {plays} plays\n>             {left} to milestone")
+                print(f"> 🎤  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
