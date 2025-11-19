@@ -62,8 +62,6 @@ jobs:
           # escape markdown v2 (full set)
           out="$raw"
           out="$(echo "$out" | sed 's/\\/\\\\/g')"     # \
-          out="$(echo "$out" | sed 's/\_/\\_/g')"      # _
-          out="$(echo "$out" | sed 's/\*/\\*/g')"      # *
           out="$(echo "$out" | sed 's/\[/\\[/g')"      # [
           out="$(echo "$out" | sed 's/\]/\\]/g')"      # ]
           out="$(echo "$out" | sed 's/(/\\(/g')"       # (
@@ -75,7 +73,6 @@ jobs:
           out="$(echo "$out" | sed 's/\=/\\=/g')"      # =
           out="$(echo "$out" | sed 's/\~/\\~/g')"      # ~
           out="$(echo "$out" | sed 's/\`/\\`/g')"      # `
-          out="$(echo "$out" | sed 's/>/\\>/g')"       # >
           out="$(echo "$out" | sed 's/#/\\#/g')"       # #
           out="$(echo "$out" | sed 's/|/\\|/g')"       # |
           out="$(echo "$out" | sed 's/{/\\{/g')"       # {
