@@ -126,7 +126,7 @@ def process_and_display(items, entity_type, count):
         type_label = "nuova migliaia" if m_type == 'k' else "nuova centinaia/traguardo"
         type_labels = { "art": "artisti", "alb": "album", "trk": "tracce" }
         
-        print(f"    🏁 Milestone: {target} scrobble ({type_labels.get(entity_type)})")
+        print(f"    🏁 Milestone: {target} scrobble ({type_labels.get(entity_type)})\n")
         for item in group:
             plays = item.get('playcount')
             left = item['m_info']['mancanti']
