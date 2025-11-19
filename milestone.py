@@ -196,7 +196,7 @@ def process_and_display(items, entity_type, count):
                 name = item.get("name", "n/a")
 
                 line = (
-                    f">🎤 *{name}*\n"
+                    f"> 🎤 *{name}*\n"
                     f">>   *{plays}* _plays_\n"
                     f">>>   *{left}* _to milestone_\n"
                 )
