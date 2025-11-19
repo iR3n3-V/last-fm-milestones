@@ -176,20 +176,42 @@ def process_and_display(items, entity_type, count):
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
-    parser.add_argument("entity", choices=["art", "alb", "trk"])
-    parser.add_argument("count", nargs="?", default=None, help="milestone numerica (es: 100, 1000)")
-    parser.add_argument("username", nargs="?", default=None, help="username last.fm (cadere su .env se assente)")
+
+    parser.add_argument(
+        "entity",
+        choices=["art", "alb", "trk"],
+        help="tipo: art (artist), alb (album), trk (track)"
+    )
+
+    parser.add_argument(
+        "username",
+        nargs="?",
+        default=None,
+        help="username last.fm (se assente usa LASTFM_USERNAME da .env)"
+    )
+
+    parser.add_argument(
+        "count",
+        nargs="?",
+        default=None,
+        help="milestone numerica opzionale (es: 100, 1000)"
+    )
+
     args = parser.parse_args()
 
     api_key = get_api_key()
+
+    # username: CLI > .env > errore
     username = args.username or os.getenv("LASTFM_USERNAME")
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
+    # now entity, username, count are clean
     data = fetch_lastfm_data(args.entity, username, api_key)
     if data:
         process_and_display(data, args.entity, args.count)
+
 
 if __name__ == "__main__":
     main()
