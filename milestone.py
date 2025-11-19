@@ -156,7 +156,7 @@ def process_and_display(items, entity_type, count):
 
         type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
-        print(f"🏁 milestone: *{esc(str(target))}* scrobble ({type_labels.get(entity_type)})\n")
+        print(f"🏁 milestone: *{esc(str(target))}* scrobble - {type_labels.get(entity_type)} \n")
 
         for item in group:
             plays = item.get("playcount")
