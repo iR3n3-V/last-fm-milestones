@@ -19,9 +19,11 @@ min_scrobble_threshold = 95
 # ---------------------------
 def escape_md(text: str) -> str:
     """
-    escape necessario per markdownv2 telegram.
+    escape markdownv2 telegram senza toccare * e _ 
+    così la formattazione continua a funzionare.
     """
-    chars = r"_*[]()~`>#+-=|{}.!"
+    # lista ufficiale dei caratteri da escapare
+    chars = r"[]()~`>#+-=|{}.!"
     escaped = ""
     for c in text:
         if c in chars:
@@ -29,7 +31,6 @@ def escape_md(text: str) -> str:
         else:
             escaped += c
     return escaped
-
 
 def get_api_key():
     key = os.getenv("LASTFM_API_KEY")
