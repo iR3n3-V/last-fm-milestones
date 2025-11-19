@@ -43,17 +43,24 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
           out="$(cat result.txt)"
+          MAX=3800   # margine di sicurezza per caratteri speciali markdown
       
-          if [ "${#out}" -lt 4000 ]; then
+          send_part() {
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
               -d chat_id="${CHAT_ID}" \
-              -d parse_mode="MarkdownV2" \
               -d disable_web_page_preview=true \
-              --data-urlencode "text=${out}"
-          else
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument" \
-              -F chat_id="${CHAT_ID}" \
-              -F document=@result.txt
+              --data-urlencode "text=$1" > /dev/null
+          }
+      
+          while [ ${#out} -gt $MAX ]; do
+            part="${out:0:$MAX}"
+            send_part "$part"
+            out="${out:$MAX}"
+          done
+      
+          # ultima parte
+          send_part "$out"
+
           fi
 
 
