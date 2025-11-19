@@ -147,7 +147,8 @@ def process_and_display(items, entity_type, count):
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"🏁  *Milestone: {target}* scrobble \\(_{type_labels.get(entity_type)}_\\) \n")
+        print(f"_{type_labels.get(entity_type)}_\n")
+        print(f"🏁  *Milestone: {target}* scrobble \n")
 
         for item in group:
             plays = item.get("playcount")
