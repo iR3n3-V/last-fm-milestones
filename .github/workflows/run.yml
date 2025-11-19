@@ -49,6 +49,8 @@ jobs:
           args="$args $count"
           args="$args $username"
 
+          python milestone.py $args > result.txt || true
+          cat result.txt
 
 
       - name: run script and send to telegram (HTML, chunked)
@@ -58,7 +60,16 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
           safe_chunk_size=3500  # margine maggiore
-          raw="$(python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}")"
+          entity="${{ github.event.inputs.entity }}"
+          count="${{ github.event.inputs.count }}"
+          username="${{ github.event.inputs.username }}"
+          
+          if [ -z "$count" ]; then
+              count=""
+          fi
+          
+          raw="$(python milestone.py "$entity" "$count" "$username")"
+
           
           current_chunk=""
           block=""
