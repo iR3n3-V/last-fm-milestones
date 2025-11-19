@@ -132,7 +132,7 @@ def process_and_display(items, entity_type, count):
             left = item['m_info']['mancanti']
             if entity_type == 'art':
                 name = item.get('name', 'N/A')
-                print(f"   🎤 {name}\n            {plays} plays\n            {left} to milestone\n\n")
+                print(f"   🎤 *{name}*\n            *{plays}* _plays_\n            *{left}* _to milestone_\n\n")
             elif entity_type == 'alb':
                 alb_name = item.get('name', 'n/a')
                 art_obj = item.get('artist', {})
