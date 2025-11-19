@@ -19,18 +19,34 @@ min_scrobble_threshold = 95
 # ---------------------------
 def escape_md(text: str) -> str:
     """
-    escape markdownv2 telegram senza toccare * e _ 
-    così la formattazione continua a funzionare.
+    escape markdownv2 characters ma permette >, >>, >>> come blockquote
     """
-    # lista ufficiale dei caratteri da escapare
-    chars = r"[]()~`>#+-=|{}.!"
-    escaped = ""
-    for c in text:
-        if c in chars:
-            escaped += "\\" + c
-        else:
-            escaped += c
-    return escaped
+    safe_lines = []
+    chars = r"[]()~`#+-=|{}.!"   # NOTA: niente * _ >
+
+    for line in text.split("\n"):
+        # 1) preserva i quote all'inizio della linea
+        prefix = ""
+        i = 0
+        while i < len(line) and line[i] == ">":
+            prefix += ">"
+            i += 1
+
+        content = line[i:]
+
+        # 2) escape su contenuto della linea (non sul prefix)
+        escaped = ""
+        for c in content:
+            if c in chars:
+                escaped += "\\" + c
+            else:
+                escaped += c
+
+        # 3) aggiungi insieme
+        safe_lines.append(prefix + escaped)
+
+    return "\n".join(safe_lines)
+
 
 def get_api_key():
     key = os.getenv("LASTFM_API_KEY")
