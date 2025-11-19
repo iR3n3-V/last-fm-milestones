@@ -195,6 +195,13 @@ def normalize_arg(x):
     x = str(x).strip()
     return x if x else None
 
+def detect_numeric(x):
+    try:
+        return int(x)
+    except:
+        return None
+
+
 
 def resolve_inputs(args):
     api_key = get_api_key()
