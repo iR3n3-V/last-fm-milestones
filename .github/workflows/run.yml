@@ -37,22 +37,56 @@ jobs:
           python milestone.py "${{ github.event.inputs.entity }}" "${{ github.event.inputs.count }}" "${{ github.event.inputs.username }}" > result.txt || true
           cat result.txt
 
-      - name: send to telegram (message or file if too large)
+      - name: send to telegram (multi-message safe markdown)
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
-          out="$(cat result.txt)"
-      
-          if [ "${#out}" -lt 4000 ]; then
+          raw="$(cat result.txt)"
+
+          # escape markdown v2
+          escape_md() {
+            echo "$1" | sed \
+              -e 's/\\/\\\\/g' \
+              -e 's/\_/\\_/g' \
+              -e 's/\*/\\*/g' \
+              -e 's/\[/\\[/g' \
+              -e 's/\]/\\]/g' \
+              -e 's/(/\\(/g' \
+              -e 's/)/\\)/g' \
+              -e 's/\~/\\~/g' \
+              -e 's/\`/\\`/g' \
+              -e 's/\>/\\>/g' \
+              -e 's/\#/\\#/g' \
+              -e 's/\+/\\+/g' \
+              -e 's/\-/\\-/g' \
+              -e 's/\=/\\=/g' \
+              -e 's/\|/\\|/g' \
+              -e 's/{/\\{/g' \
+              -e 's/}/\\}/g' \
+              -e 's/\./\\./g' \
+              -e 's/\!/\\!/g'
+          }
+
+          out="$(escape_md "$raw")"
+          MAX=3800    # margine per sicurezza telegram
+
+          send_part() {
             curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
               -d chat_id="${CHAT_ID}" \
               -d parse_mode="MarkdownV2" \
               -d disable_web_page_preview=true \
-              --data-urlencode "text=${out}"
-          else
-            curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument" \
-              -F chat_id="${CHAT_ID}" \
-              -F document=@result.txt
-          fi
+              --data-urlencode "text=$1" > /dev/null
+          }
+
+          # loop invio multiplo
+          while [ ${#out} -gt $MAX ]; do
+            part="${out:0:$MAX}"
+            send_part "$part"
+            out="${out:$MAX}"
+            sleep 0.2
+          done
+
+          # ultimo messaggio
+          send_part "$out"
 
