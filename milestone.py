@@ -189,7 +189,12 @@ def parse_args():
 
     return parser.parse_args()
 
-def normalize_arg(x): if x is None: return None x = str(x).strip() return x if x else None
+def normalize_arg(x):
+    if x is None:
+        return None
+    x = str(x).strip()
+    return x if x else None
+
 
 def resolve_inputs(args):
     api_key = get_api_key()
