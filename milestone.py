@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # milestone.py
-
 import argparse
 import os
 import sys
@@ -11,42 +10,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_url = "http://ws.audioscrobbler.com/2.0/"
-min_scrobble_threshold = 95
+API_URL = "http://ws.audioscrobbler.com/2.0/"
+MIN_SCROBBLE_THRESHOLD = 95
 
-# ---------------------------
-#  escape per markdown v2
-# ---------------------------
-def escape_md(text: str) -> str:
-    """
-    escape markdownv2 characters ma permette >, >>, >>> come blockquote
-    """
-    safe_lines = []
-    chars = r"[]()~`#+-=|{}.!"   # NOTA: niente * _ >
-
-    for line in text.split("\n"):
-        # 1) preserva i quote all'inizio della linea
-        prefix = ""
-        i = 0
-        while i < len(line) and line[i] == ">":
-            prefix += ">"
-            i += 1
-
-        content = line[i:]
-
-        # 2) escape su contenuto della linea (non sul prefix)
-        escaped = ""
-        for c in content:
-            if c in chars:
-                escaped += "\\" + c
-            else:
-                escaped += c
-
-        # 3) aggiungi insieme
-        safe_lines.append(prefix + escaped)
-
-    return "\n".join(safe_lines)
-
+# escape per markdown v2 (per i testi, NON per gli url)
+def esc(s: str) -> str:
+    special = r"\`{}#+-=|.!$()[]"
+    for ch in special:
+        s = s.replace(ch, "\\" + ch)
+    return s
 
 def get_api_key():
     key = os.getenv("LASTFM_API_KEY")
@@ -55,48 +27,48 @@ def get_api_key():
         sys.exit(1)
     return key
 
-
 def calculate_milestone(scrobble):
     try:
-        s = int(scrobble)
-    except (valueError, typeError):
+        S = int(scrobble)
+    except (ValueError, TypeError):
         return None
 
-    if s < 95:
+    if S < 95:
         return None
 
     result = None
 
-    if 95 <= s < 100:
-        mancanti = 100 - s
+    if 95 <= S < 100:
+        mancanti = 100 - S
         if mancanti <= 5:
             result = {"milestone": 100, "mancanti": mancanti, "tipo": "h"}
 
-    elif s >= 100:
-        prossima_centinaia = math.ceil(s / 100) * 100
-        mancanti = prossima_centinaia - s
+    elif S >= 100:
+        prossima_centinaia = math.ceil(S / 100) * 100
+        mancanti = prossima_centinaia - S
+
         if 0 < mancanti <= 20:
             result = {"milestone": prossima_centinaia, "mancanti": mancanti, "tipo": "h"}
 
-        if s >= 1000:
-            prossima_migliaia = math.ceil(s / 1000) * 1000
-            mancanti_k = prossima_migliaia - s
+        if S >= 1000:
+            prossima_migliaia = math.ceil(S / 1000) * 1000
+            mancanti_k = prossima_migliaia - S
             if 0 < mancanti_k <= 100:
                 result = {"milestone": prossima_migliaia, "mancanti": mancanti_k, "tipo": "k"}
 
     return result
 
-
 def fetch_lastfm_data(entity_type, username, api_key):
     method_map = {
         "art": "user.gettopartists",
         "alb": "user.gettopalbums",
-        "trk": "user.gettoptracks",
+        "trk": "user.gettoptracks"
     }
+
     response_key_map = {
         "art": ("topartists", "artist"),
         "alb": ("topalbums", "album"),
-        "trk": ("toptracks", "track"),
+        "trk": ("toptracks", "track")
     }
 
     method = method_map[entity_type]
@@ -114,11 +86,11 @@ def fetch_lastfm_data(entity_type, username, api_key):
             "api_key": api_key,
             "format": "json",
             "limit": limit,
-            "page": page,
+            "page": page
         }
 
         try:
-            response = requests.get(api_url, params=params, timeout=10)
+            response = requests.get(API_URL, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as e:
@@ -127,7 +99,7 @@ def fetch_lastfm_data(entity_type, username, api_key):
 
         try:
             items = data[root_key][list_key]
-        except (keyError, typeError):
+        except (KeyError, TypeError):
             break
 
         if not items:
@@ -135,12 +107,12 @@ def fetch_lastfm_data(entity_type, username, api_key):
 
         try:
             last_item_playcount = int(items[-1].get("playcount", 0))
-        except (indexError, keyError, valueError):
+        except:
             last_item_playcount = 0
 
         all_items.extend(items)
 
-        if last_item_playcount < min_scrobble_threshold:
+        if last_item_playcount < MIN_SCROBBLE_THRESHOLD:
             keep_fetching = False
         else:
             page += 1
@@ -148,14 +120,13 @@ def fetch_lastfm_data(entity_type, username, api_key):
 
     return all_items
 
-
 def process_and_display(items, entity_type, count):
     milestone_groups = {}
 
     for item in items:
         try:
             playcount = int(item.get("playcount", 0))
-        except (valueError, typeError):
+        except:
             continue
 
         m_info = calculate_milestone(playcount)
@@ -166,7 +137,7 @@ def process_and_display(items, entity_type, count):
             try:
                 if m_info["milestone"] != int(count):
                     continue
-            except valueError:
+            except:
                 pass
 
         item["m_info"] = m_info
@@ -178,79 +149,86 @@ def process_and_display(items, entity_type, count):
         return
 
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
-    type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
-        m_type = group[0]["m_info"]["tipo"]
 
-        header = f"🏁 milestone: *{target}* scrobble ({type_labels.get(entity_type)})"
-        print(escape_md(header) + "\n")
+        type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
+
+        print(f"🏁 milestone: *{esc(str(target))}* scrobble ({type_labels.get(entity_type)})\n")
 
         for item in group:
             plays = item.get("playcount")
             left = item["m_info"]["mancanti"]
 
+            plays_s = esc(str(plays))
+            left_s = esc(str(left))
+
+            url = item.get("url", "")
+
+            # artisti
             if entity_type == "art":
-                name = item.get("name", "n/a")
+                name = esc(item.get("name", "n/a"))
+                clickable = f"[*{name}*]({url})" if url else f"*{name}*"
 
                 line = (
-                    f"> 🎤  *{name}*\n"
-                    f"        *{plays}* _plays_\n"
-                    f"        *{left}* _to milestone_\n"
+                    f"> 🎤 {clickable}\n"
+                    f">> *{plays_s}* _plays_\n"
+                    f">>> *{left_s}* _to milestone_\n"
                 )
-                print(escape_md(line) + "\n")
+                print(line + "\n")
 
+            # album
             elif entity_type == "alb":
-                alb_name = item.get("name", "n/a")
+                alb_name = esc(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = (
-                    art_obj.get("name", art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                )
+                art_name = esc(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+
+                clickable = f"[*{alb_name}* — _{art_name}_]({url})" if url else f"*{alb_name}* — _{art_name}_"
 
                 line = (
-                    f"💿 *{alb_name}* / *{art_name}*\n"
-                    f"   *{plays}* plays\n"
-                    f"   *{left}* to milestone\n"
+                    f"> 💿 {clickable}\n"
+                    f">> *{plays_s}* _plays_\n"
+                    f">>> *{left_s}* _to milestone_\n"
                 )
-                print(escape_md(line) + "\n")
+                print(line + "\n")
 
+            # tracce
             elif entity_type == "trk":
-                trk_name = item.get("name", "n/a")
+                trk_name = esc(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = (
-                    art_obj.get("name", art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                )
+                art_name = esc(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+
+                clickable = f"[*{trk_name}* — _{art_name}_]({url})" if url else f"*{trk_name}* — _{art_name}_"
 
                 line = (
-                    f"🎵 *{trk_name}* / *{art_name}*\n"
-                    f"   *{plays}* plays\n"
-                    f"   *{left}* to milestone\n"
+                    f"> 🎵 {clickable}\n"
+                    f">> *{plays_s}* _plays_\n"
+                    f">>> *{left_s}* _to milestone_\n"
                 )
-                print(escape_md(line) + "\n")
+                print(line + "\n")
 
-    print("\n")
-
+        print("\n")
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
     parser.add_argument("entity", choices=["art", "alb", "trk"])
-    parser.add_argument("count", nargs="?", default=None)
-    parser.add_argument("username", nargs="?", default=None)
+    parser.add_argument("count", nargs="?", default=None, help="milestone numerica (es: 100, 1000)")
+    parser.add_argument("username", nargs="?", default=None, help="username last.fm (cadere su .env se assente)")
     args = parser.parse_args()
 
     api_key = get_api_key()
     username = args.username or os.getenv("LASTFM_USERNAME")
 
     if not username:
-        print("❌ errore: username non specificato")
+        print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
     data = fetch_lastfm_data(args.entity, username, api_key)
+
     if data:
         process_and_display(data, args.entity, args.count)
-
 
 if __name__ == "__main__":
     main()
