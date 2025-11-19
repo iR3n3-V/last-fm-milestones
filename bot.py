@@ -56,4 +56,12 @@ async def main():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(main())
+
+    try:
+        asyncio.run(main())
+    except RuntimeError:
+        # fallback per ambienti dove il loop è già aperto (GitHub Actions)
+        loop = asyncio.get_event_loop()
+        loop.create_task(main())
+        loop.run_forever()
+
