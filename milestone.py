@@ -15,7 +15,7 @@ MIN_SCROBBLE_THRESHOLD = 95
 
 # escape minima solo per testo, NON tag
 def esc_html_text(s: str) -> str:
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 def get_api_key():
     key = os.getenv("LASTFM_API_KEY")
