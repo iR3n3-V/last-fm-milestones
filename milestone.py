@@ -174,8 +174,8 @@ def process_and_display(items, entity_type, count):
 
                 line = (
                     f"\\> 🎤     {clickable}\n"
-                    f"\\>>             *{plays_s}* _plays_\n"
-                    f"\\>>>             *{left_s}* _to milestone_ "
+                    f"\\>             *{plays_s}* _plays_\n"
+                    f"\\>           *{left_s}* _to milestone_ "
                 )
                 print(line + "\n")
 
@@ -188,9 +188,9 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[*{alb_name}* — _{art_name}_]({url})" if url else f"*{alb_name}* — _{art_name}_"
 
                 line = (
-                    f"> 💿 {clickable}\n"
-                    f">> *{plays_s}* _plays_\n"
-                    f">>> *{left_s}* _to milestone_\n"
+                    f"\\> 💿 {clickable}\n"
+                    f"\\> *{plays_s}* _plays_\n"
+                    f"\\> *{left_s}* _to milestone_\n"
                 )
                 print(line + "\n")
 
@@ -203,9 +203,9 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[*{trk_name}* — _{art_name}_]({url})" if url else f"*{trk_name}* — _{art_name}_"
 
                 line = (
-                    f"> 🎵 {clickable}\n"
-                    f">> *{plays_s}* _plays_\n"
-                    f">>> *{left_s}* _to milestone_\n"
+                    f"\\> 🎵 {clickable}\n"
+                    f"\\> *{plays_s}* _plays_\n"
+                    f"\\> *{left_s}* _to milestone_\n"
                 )
                 print(line + "\n")
 
