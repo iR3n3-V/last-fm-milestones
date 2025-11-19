@@ -159,7 +159,7 @@ def process_and_display(items, entity_type, count):
             if entity_type == "art":
                 name = esc_html_text(item.get("name", "n/a"))
                 clickable = f'<a href="{url}">{name}</a>' if url else name
-                print(f'<pre>🎤 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
+                print(f'🎤 <b>{clickable}<b>\n            <b>{plays_s}</b> <i>plays</i>\n            <b>{left_s}</b> <i>to milestone</i>\n')
 
             elif entity_type == "alb":
                 alb_name = esc_html_text(item.get("name", "n/a"))
