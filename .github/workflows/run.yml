@@ -1,5 +1,10 @@
 name: run milestone
 
+env:
+  REPO: ${{ secrets.REPO }}
+  PAT: ${{ secrets.PAT }}
+  TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+
 on:
   workflow_dispatch:
     inputs:
