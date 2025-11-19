@@ -146,15 +146,15 @@ def process_and_display(items, entity_type, count):
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"🏁 <b>Milestone: {esc_html(str(target))}</b> <i>scrobble</i> (<i>{type_labels.get(entity_type)}</i>)\n")
+        print(f"🏁 <b>Milestone: {esc_html_text(str(target))}</b> <i>scrobble</i> (<i>{type_labels.get(entity_type)}</i>)\n")
 
         for item in group:
             plays = item.get("playcount")
             left = item["m_info"]["mancanti"]
             url = item.get("url", "")
 
-            plays_s = esc_html(str(plays))
-            left_s = esc_html(str(left))
+            plays_s = esc_html_text(str(plays))
+            left_s = esc_html_text(str(left))
 
             if entity_type == "art":
                 name = esc_html_text(item.get("name", "n/a"))
