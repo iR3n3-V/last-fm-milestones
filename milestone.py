@@ -111,7 +111,12 @@ def fetch_lastfm_data(entity_type, username, api_key):
 
     return all_items
 
-def process_and_display(items, entity_type, count):
+def esc_md2(text: str) -> str:
+    """Escape caratteri speciali per MarkdownV2"""
+    escape_chars = r'\_*[]()~`>#+-=|{}.!'
+    return ''.join(f"\\{c}" if c in escape_chars else c for c in text)
+
+def process_and_display_md(items, entity_type, count):
     milestone_groups = {}
 
     for item in items:
@@ -136,44 +141,39 @@ def process_and_display(items, entity_type, count):
         milestone_groups.setdefault(target, []).append(item)
 
     if not milestone_groups:
-        print("\n❌ nessun risultato trovato che rispetti i criteri selezionati.")
+        print("❌ nessun risultato trovato che rispetti i criteri selezionati.")
         return
 
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
-    type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x["m_info"]["mancanti"])
 
-        print(f"🏁 <b>Milestone: {esc_html_text(str(target))}</b> <i>scrobble</i> (<i>{type_labels.get(entity_type)}</i>)\n")
+        print(f"*Milestone: {target}* (scrobble)\n")
 
         for item in group:
             plays = item.get("playcount")
             left = item["m_info"]["mancanti"]
             url = item.get("url", "")
 
-            plays_s = esc_html_text(str(plays))
-            left_s = esc_html_text(str(left))
-
             if entity_type == "art":
-                name = esc_html_text(item.get("name", "n/a"))
-                clickable = f'<a href="{url}">{name}</a>' if url else name
-                print(f'<quote>🎤 <b>{clickable}</b>\n            <b>{plays_s}</b> <i>plays</i>\n            <b>{left_s}</b> <i>to milestone</i></quote>\n')
-
+                name = esc_md2(item.get("name", "n/a"))
+                clickable = f"[{name}]({url})" if url else name
+                print(f"> 🎤 {clickable}\n> {plays} plays\n> {left} to milestone\n")
             elif entity_type == "alb":
-                alb_name = esc_html_text(item.get("name", "n/a"))
+                alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc_html_text(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
-                clickable = f'<a href="{url}">{alb_name} — {art_name}</a>' if url else f'{alb_name} — {art_name}'
-                print(f'<pre>💿 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
-
+                art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                clickable = f"[{alb_name} — {art_name}]({url})" if url else f"{alb_name} — {art_name}"
+                print(f"> 💿 {clickable}\n> {plays} plays\n> {left} to milestone\n")
             elif entity_type == "trk":
-                trk_name = esc_html_text(item.get("name", "n/a"))
+                trk_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
-                art_name = esc_html_text(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
-                clickable = f'<a href="{url}">{trk_name} — {art_name}</a>' if url else f'{trk_name} — {art_name}'
-                print(f'<pre>🎵 {clickable}\n{plays_s} plays\n{left_s} to milestone</pre>\n')
+                art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
+                print(f"> 🎵 {clickable}\n> {plays} plays\n> {left} to milestone\n")
+
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
