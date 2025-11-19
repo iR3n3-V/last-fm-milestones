@@ -182,6 +182,12 @@ def parse_args():
                         help="username opzionale")
     return parser.parse_args()
 
+def normalize_arg(x):
+    if x is None:
+        return None
+    if str(x).strip() == "":
+        return None
+    return x
 
 def detect_numeric(value):
     """ritorna int(value) se numerico, altrimenti None."""
