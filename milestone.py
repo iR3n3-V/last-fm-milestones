@@ -137,7 +137,7 @@ def process_and_display(items, entity_type, count):
         milestone_groups.setdefault(target, []).append(item)
 
     if not milestone_groups:
-        print("❌ nessun risultato trovato che rispetti i criteri selezionati.")
+        print("❌ nessun risultato trovato che rispetti i criteri selezionati\\.")
         return
 
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
@@ -220,7 +220,7 @@ def resolve_inputs(args):
         username = os.getenv("LASTFM_USERNAME")
 
     if not username:
-        print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
+        print("❌ errore: username non specificato\\. imposta LASTFM_USERNAME nel \\.env o passalo come arg\\.")
         sys.exit(1)
 
     return api_key, username, count
