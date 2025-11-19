@@ -13,12 +13,9 @@ load_dotenv()
 API_URL = "http://ws.audioscrobbler.com/2.0/"
 MIN_SCROBBLE_THRESHOLD = 95
 
-# escape HTML (solo i caratteri speciali)
-def esc_html(s: str) -> str:
-    s = s.replace("&", "&amp;")
-    s = s.replace("<", "&lt;")
-    s = s.replace(">", "&gt;")
-    return s
+# escape minima solo per testo, NON tag
+def esc_html_text(s: str) -> str:
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"
 
 def get_api_key():
     key = os.getenv("LASTFM_API_KEY")
