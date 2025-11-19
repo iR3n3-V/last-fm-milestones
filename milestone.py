@@ -236,15 +236,19 @@ def main():
     args = parse_args()
     api_key = get_api_key()
 
-    username, count = interpret_rest(args.rest)
+    username, count = interpret_args(args.entity, args.arg2, args.arg3)
 
     if not username:
-        print("❌ errore: nessun username disponibile (né argomento né variabile LASTFM_USERNAME)")
+        print("❌ errore: username non specificato. mettilo nel .env oppure passalo come argomento.")
         sys.exit(1)
 
     data = fetch_lastfm_data(args.entity, username, api_key)
 
-    if data:
-        process_and_display(data, args.entity, count)
+    if not data:
+        print("❌ nessun dato ottenuto da last.fm.")
+        return
+
+    process_and_display(data, args.entity, count)
+
 
 
