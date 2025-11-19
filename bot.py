@@ -37,14 +37,19 @@ async def milestone(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("entity non valida. usa: art | alb | trk")
         return
     count = args[1] if len(args) > 1 else ""
+    inputs = {
+        "entity": entity,
+        "username": USERNAME
+    }
+    
+    if count:
+        inputs["count"] = count
+    
     payload = {
         "ref": "main",
-        "inputs": {
-            "entity": entity,
-            "count": str(count),
-            "username": USERNAME
-        }
+        "inputs": inputs
     }
+
     r = requests.post(API_URL, json=payload, headers=HEADERS)
     if r.status_code == 204:
         await update.message.reply_text("🚀 job avviato! riceverai il risultato su telegram.")
