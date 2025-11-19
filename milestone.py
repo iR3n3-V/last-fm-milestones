@@ -143,6 +143,7 @@ def process_and_display(items, entity_type, count):
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
     type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
 
+    print(f"_Stai vedendo le milestone dell'utente: *{username}*_\n")
     print(f"_Sto filtrando per: *{type_labels.get(entity_type)}*_\n")
 
     for target in sorted_targets:
@@ -251,7 +252,7 @@ def main():
 
     data = fetch_lastfm_data(args.entity, username, api_key)
     if data:
-        process_and_display(data, args.entity, count)
+        process_and_display(data, args.entity, count, username)
 
 
 if __name__ == "__main__":
