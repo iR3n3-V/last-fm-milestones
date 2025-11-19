@@ -132,17 +132,17 @@ def process_and_display(items, entity_type, count):
             left = item['m_info']['mancanti']
             if entity_type == 'art':
                 name = item.get('name', 'N/A')
-                print(f"   🎤 {name}\n    {plays} plays\n    {left} to milestone\n\n")
+                print(f"   🎤 {name}\n        {plays} plays\n        {left} to milestone\n\n")
             elif entity_type == 'alb':
                 alb_name = item.get('name', 'n/a')
                 art_obj = item.get('artist', {})
                 art_name = art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                print(f"   💿 {alb_name} / {art_name}\n {plays} plays\n    {left} to milestone\n\n")
+                print(f"   💿 {alb_name} / {art_name}\n         {plays} plays\n        {left} to milestone\n\n")
             elif entity_type == 'trk':
                 trk_name = item.get('name', 'n/a')
                 art_obj = item.get('artist', {})
                 art_name = art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                print(f"   🎵 {trk_name} / {art_name}\n {plays} plays\n    {left} to milestone\n\n")
+                print(f"   🎵 {trk_name} / {art_name}\n         {plays} plays\n        {left} to milestone\n\n")
     print("\n")
 
 def main():
