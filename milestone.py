@@ -174,7 +174,7 @@ def process_and_display(items, entity_type, count):
                 print(f"> 🎵  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
 
 
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
 
     parser.add_argument(
@@ -183,35 +183,62 @@ def main():
         help="tipo: art (artist), alb (album), trk (track)"
     )
 
+    # tutti gli altri argomenti posizionali entrano qui
     parser.add_argument(
-        "username",
-        nargs="?",
-        default=None,
-        help="username last.fm (se assente usa LASTFM_USERNAME da .env)"
+        "rest",
+        nargs="*",
+        help="username e/o count (facoltativi)"
     )
 
-    parser.add_argument(
-        "count",
-        nargs="?",
-        default=None,
-        help="milestone numerica opzionale (es: 100, 1000)"
-    )
+    return parser.parse_args()
 
-    args = parser.parse_args()
 
+def interpret_args(rest):
+    default_username = os.getenv("LASTFM_USERNAME")
+
+    if len(rest) == 0:
+        # nessun argomento extra
+        return default_username, None
+
+    if len(rest) == 1:
+        only = rest[0]
+        if only.isdigit():
+            # solo count
+            return default_username, int(only)
+        else:
+            # solo username
+            return only, None
+
+    if len(rest) == 2:
+        user = rest[0]
+        cnt = rest[1]
+
+        if not cnt.isdigit():
+            print("❌ errore: il secondo argomento deve essere numerico (count).")
+            sys.exit(1)
+
+        return user, int(cnt)
+
+    print("❌ troppi argomenti. usa: <entity> [username] [count]")
+    sys.exit(1)
+
+
+def main():
+    args = parse_args()
     api_key = get_api_key()
 
-    # username: CLI > .env > errore
-    username = args.username or os.getenv("LASTFM_USERNAME")
+    # interpreta i parametri secondo la logica desiderata
+    username, count = interpret_args(args.rest)
+
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
-    # now entity, username, count are clean
     data = fetch_lastfm_data(args.entity, username, api_key)
     if data:
-        process_and_display(data, args.entity, args.count)
+        process_and_display(data, args.entity, count)
 
 
 if __name__ == "__main__":
     main()
+
