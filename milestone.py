@@ -175,7 +175,7 @@ def process_and_display(items, entity_type, count):
                 line = (
                     f"> 🎤     {clickable}\n"
                     f">>             *{plays_s}* _plays_\n"
-                    f">>>             *{left_s}* _to milestone_\n"
+                    f">>>             *{left_s}* _to milestone_ "
                 )
                 print(line + "\n")
 
