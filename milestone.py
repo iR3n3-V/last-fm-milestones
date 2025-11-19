@@ -95,6 +95,11 @@ def fetch_lastfm_data(entity_type, username, api_key):
             time.sleep(0.2)
     return all_items
 
+import re
+
+def escape_md_v2(text):
+    return re.sub(r'([_*[\]()~`>#+-=|{}.!])', r'\\\1', str(text))
+
 def process_and_display(items, entity_type, count):
     milestone_groups = {}
     for item in items:
@@ -110,40 +115,40 @@ def process_and_display(items, entity_type, count):
                 if m_info['milestone'] != int(count):
                     continue
             except ValueError:
-                # se count non è un numero, non filtrare
                 pass
         item['m_info'] = m_info
         target = m_info['milestone']
         milestone_groups.setdefault(target, []).append(item)
+
     if not milestone_groups:
-        print("\n❌ nessun risultato trovato che rispetti i criteri selezionati.")
-        return
+        return "❌ nessun risultato trovato che rispetti i criteri selezionati."
+
     sorted_targets = sorted(milestone_groups.keys(), reverse=True)
+    type_labels = {"art": "artisti", "alb": "album", "trk": "tracce"}
+    output_lines = []
+
     for target in sorted_targets:
         group = milestone_groups[target]
         group.sort(key=lambda x: x['m_info']['mancanti'])
-        m_type = group[0]['m_info']['tipo']
-        type_label = "nuova migliaia" if m_type == 'k' else "nuova centinaia/traguardo"
-        type_labels = { "art": "artisti", "alb": "album", "trk": "tracce" }
-        
-        print(f"    🏁 Milestone: {target} scrobble ({type_labels.get(entity_type)}): \n")
+        output_lines.append(f"🏁 *Milestone*: {target} scrobble ({type_labels.get(entity_type)})\n")
         for item in group:
             plays = item.get('playcount')
             left = item['m_info']['mancanti']
             if entity_type == 'art':
-                name = item.get('name', 'N/A')
-                print(f"   🎤 *{name}*\n            *{plays}* _plays_\n            *{left}* _to milestone_\n\n")
+                name = escape_md_v2(item.get('name', 'N/A'))
+                output_lines.append(f"🎤 *{name}*\n   *{plays}* _plays_\n   *{left}* _to milestone_\n")
             elif entity_type == 'alb':
-                alb_name = item.get('name', 'n/a')
+                alb_name = escape_md_v2(item.get('name', 'N/A'))
                 art_obj = item.get('artist', {})
-                art_name = art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                print(f"   💿 {alb_name} / {art_name}\n             {plays} plays\n            {left} to milestone\n\n")
+                art_name = escape_md_v2(art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj))
+                output_lines.append(f"💿 *{alb_name}* / *{art_name}*\n   *{plays}* _plays_\n   *{left}* _to milestone_\n")
             elif entity_type == 'trk':
-                trk_name = item.get('name', 'n/a')
+                trk_name = escape_md_v2(item.get('name', 'N/A'))
                 art_obj = item.get('artist', {})
-                art_name = art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj)
-                print(f"   🎵 {trk_name} / {art_name}\n             {plays} plays\n            {left} to milestone\n\n")
-    print("\n")
+                art_name = escape_md_v2(art_obj.get('name', art_obj) if isinstance(art_obj, dict) else str(art_obj))
+                output_lines.append(f"🎵 *{trk_name}* / *{art_name}*\n   *{plays}* _plays_\n   *{left}* _to milestone_\n")
+    return "\n".join(output_lines)
+
 
 def main():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
