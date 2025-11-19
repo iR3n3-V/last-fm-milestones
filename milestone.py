@@ -124,7 +124,9 @@ def process_and_display(items, entity_type, count):
         group.sort(key=lambda x: x['m_info']['mancanti'])
         m_type = group[0]['m_info']['tipo']
         type_label = "nuova migliaia" if m_type == 'k' else "nuova centinaia/traguardo"
-        print(f"    🏁 milestone {target} scrobble ({type_label})")
+        type_labels = { "art": "artisti", "alb": "album", "trk": "tracce" }
+        
+        print(f"    🏁 Milestone: {target} scrobble ({type_labels.get(entity_type)})")
         for item in group:
             plays = item.get('playcount')
             left = item['m_info']['mancanti']
