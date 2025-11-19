@@ -8,9 +8,10 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 load_dotenv()
 
-GITHUB_REPO = os.getenv("GITHUB_REPO")        # es: "tuouser/tuorepo"
-GITHUB_PAT = os.getenv("GITHUB_PAT")          # personal access token con permessi workflow
+GITHUB_REPO = os.getenv("REPO_NAME")
+GITHUB_PAT = os.getenv("PAT")
 WORKFLOW_FILE = os.getenv("WORKFLOW_FILE", "run.yml")
+
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 USERNAME = "svlaent"  # fisso
 
