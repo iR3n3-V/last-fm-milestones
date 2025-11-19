@@ -173,23 +173,81 @@ def process_and_display(items, entity_type, count):
                 clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
                 print(f"> 🎵  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
 
-
-def main():
+def parse_args():
     parser = argparse.ArgumentParser(description="last.fm milestone tracker")
     parser.add_argument("entity", choices=["art", "alb", "trk"])
-    parser.add_argument("count", nargs="?", default=None, help="milestone numerica (es: 100, 1000)")
-    parser.add_argument("username", nargs="?", default=None, help="username last.fm (cadere su .env se assente)")
-    args = parser.parse_args()
+    parser.add_argument("arg1", nargs="?", default=None,
+                        help="milestone O username")
+    parser.add_argument("arg2", nargs="?", default=None,
+                        help="username opzionale")
+    return parser.parse_args()
 
+
+def detect_numeric(value):
+    """ritorna int(value) se numerico, altrimenti None."""
+    try:
+        return int(value)
+    except:
+        return None
+
+
+def resolve_inputs(args):
+    """
+    logica:
+    /milestone art 400              -> entity=art,   count=400, username=.env
+    /milestone art giuliarescigno   -> entity=art,   count=None, username='giuliarescigno'
+    /milestone art 400 giulia       -> entity=art,   count=400, username='giulia'
+    /milestone art giulia 400       -> entity=art,   count=400, username='giulia'
+    """
     api_key = get_api_key()
-    username = args.username or os.getenv("LASTFM_USERNAME")
+
+    count = None
+    username = None
+
+    # caso 1: nessun argomento extra → solo entity
+    if args.arg1 is None:
+        username = os.getenv("LASTFM_USERNAME")
+
+    # caso 2: un argomento extra
+    elif args.arg2 is None:
+        numeric = detect_numeric(args.arg1)
+        if numeric is not None:
+            count = numeric
+            username = os.getenv("LASTFM_USERNAME")
+        else:
+            username = args.arg1
+
+    # caso 3: due argomenti extra
+    else:
+        # prova a interpretare il primo come numero
+        numeric = detect_numeric(args.arg1)
+        if numeric is not None:
+            count = numeric
+            username = args.arg2
+        else:
+            # primo è username, secondo *potrebbe* essere numero
+            username = args.arg1
+            numeric2 = detect_numeric(args.arg2)
+            if numeric2 is not None:
+                count = numeric2
+            else:
+                print("❌ errore: impossibile interpretare count/username negli argomenti.")
+                sys.exit(1)
+
     if not username:
         print("❌ errore: username non specificato. imposta LASTFM_USERNAME nel .env o passalo come arg.")
         sys.exit(1)
 
+    return api_key, username, count
+
+def main():
+    args = parse_args()
+    api_key, username, count = resolve_inputs(args)
+
     data = fetch_lastfm_data(args.entity, username, api_key)
     if data:
-        process_and_display(data, args.entity, args.count)
+        process_and_display(data, args.entity, count)
+
 
 if __name__ == "__main__":
     main()
