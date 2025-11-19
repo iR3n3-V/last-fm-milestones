@@ -182,44 +182,54 @@ def parse_args():
         help="tipo: art (artist), alb (album), trk (track)"
     )
 
-    # cattura TUTTO il resto senza interpretarlo
     parser.add_argument(
-        "rest",
-        nargs="*",
-        help="username e/o count"
+        "arg2",
+        nargs="?",
+        default=None,
+        help="username oppure count"
+    )
+
+    parser.add_argument(
+        "arg3",
+        nargs="?",
+        default=None,
+        help="count opzionale"
     )
 
     return parser.parse_args()
 
 
-def interpret_rest(rest):
+def interpret_args(entity, arg2, arg3):
     """
-    interpreta la sequenza:
-    [] → usa username di default, count = None
-    [x] → se x è numero = count, altrimenti username
-    [x y] → x = username, y = count
+    logica:
+      entity è sempre il primo
+      se arg2 è numerico → è count
+      se arg2 NON è numerico → è username
+      se arg3 esiste → è count
     """
 
-    default_user = os.getenv("LASTFM_USERNAME")
+    default_username = os.getenv("LASTFM_USERNAME")
 
-    if len(rest) == 0:
-        return default_user, None
+    # caso: solo entity
+    if arg2 is None:
+        return default_username, None
 
-    if len(rest) == 1:
-        x = rest[0]
-        if x.isdigit():
-            return default_user, int(x)
-        return x, None
+    # caso: entity + (username O count)
+    if arg3 is None:
+        if arg2.isdigit():
+            # secondo argomento ≈ count
+            return default_username, int(arg2)
+        else:
+            # secondo argomento ≈ username
+            return arg2, None
 
-    if len(rest) == 2:
-        user, cnt = rest
-        if not cnt.isdigit():
-            print("❌ errore: il secondo argomento deve essere numerico (count).")
-            sys.exit(1)
-        return user, int(cnt)
+    # caso: entity + username + count
+    if not arg3.isdigit():
+        print("❌ errore: il terzo argomento (count) deve essere numerico.")
+        sys.exit(1)
 
-    print("❌ errore: troppi argomenti. usa: <entity> [username] [count]")
-    sys.exit(1)
+    return arg2, int(arg3)
+
 
 
 def main():
