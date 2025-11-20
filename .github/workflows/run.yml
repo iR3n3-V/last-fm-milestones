@@ -12,6 +12,9 @@ on:
       username:
         description: "username last.fm"
         required: true
+      chatId:
+        description: "telegram chat id"
+        required: true
 
 jobs:
   run-milestone:
@@ -57,9 +60,9 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: |
           safe_chunk_size=3500  # margine maggiore
+          chat_id="${{ github.event.inputs.chatId }}"
           entity="${{ github.event.inputs.entity }}"
           count="${{ github.event.inputs.count }}"
           username="${{ github.event.inputs.username }}"
