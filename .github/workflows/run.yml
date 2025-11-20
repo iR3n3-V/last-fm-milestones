@@ -6,15 +6,19 @@ on:
       entity:
         description: "art | alb | trk"
         required: true
+        type: string
       count:
         description: "optional milestone (es: 100)"
         required: false
+        type: string
       username:
         description: "username last.fm"
         required: true
+        type: string
       chatId:
         description: "telegram chat id"
         required: true
+        type: string
 
 jobs:
   run-milestone:
