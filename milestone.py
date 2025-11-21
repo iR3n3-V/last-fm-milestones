@@ -108,9 +108,16 @@ def fetch_lastfm_data(entity_type, username, api_key):
     return all_items
 
 def esc_md2(text: str) -> str:
-    """Escape caratteri speciali per MarkdownV2"""
     escape_chars = r'\_*[]()~`>#+-=|{}.!'
     return ''.join(f"\\{c}" if c in escape_chars else c for c in text)
+
+def esc_url(url: str) -> str:
+    # telegram richiede escape di (), !, _, e \
+    return url.replace("(", r"\(")\
+              .replace(")", r"\)")\
+              .replace("!", r"\!")\
+              .replace("_", r"\_")\
+              .replace("\\", r"\\")
 
 def process_and_display(items, entity_type, count, username):
     milestone_groups = {}
@@ -159,18 +166,21 @@ def process_and_display(items, entity_type, count, username):
 
             if entity_type == "art":
                 name = esc_md2(item.get("name", "n/a"))
-                clickable = f"[{name}]({url})" if url else name
+                safe_url = esc_url(url)
+                clickable = f"[{name}]({safe_url})"
                 print(f"> 🎤  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
             elif entity_type == "alb":
                 alb_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                safe_url = esc_url(url)
                 clickable = f"[{alb_name} — {art_name}]({url})" if url else f"{alb_name} — {art_name}"
                 print(f"> 💿  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
             elif entity_type == "trk":
                 trk_name = esc_md2(item.get("name", "n/a"))
                 art_obj = item.get("artist", {})
                 art_name = esc_md2(art_obj.get("name", "n/a") if isinstance(art_obj, dict) else str(art_obj))
+                safe_url = esc_url(url)
                 clickable = f"[{trk_name} — {art_name}]({url})" if url else f"{trk_name} — {art_name}"
                 print(f"> 🎵  {clickable}\n>             {plays} plays\n>             {left} to milestone \n")
 
