@@ -149,8 +149,3 @@ jobs:
                 -F "chatId=$chat_id" \
                 -F "text=$current_chunk"
           fi
-          
-      - name: notify end
-        run: |
-          curl -s -X POST "https://lastfmmilestones.simonevalent2000.workers.dev/push-end" \
-            -F "chatId=${{ github.event.inputs.chatId }}"
