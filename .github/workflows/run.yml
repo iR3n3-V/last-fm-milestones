@@ -100,8 +100,8 @@ jobs:
                           safe_text="${current_chunk//+/\\+}"
                           
                           curl -s -X POST "https://lastfmmilestones.simonevalent2000.workers.dev/push" \
-                            -H "Content-Type: application/json" \
-                            --data-raw "{\"chatId\":\"$chat_id\",\"text\":\"$safe_text\"}"
+                            -F "chatId=$chat_id" \
+                            -F "text=$current_chunk"
                           sleep 0.2
                           current_chunk="$block"
                       else
@@ -129,8 +129,8 @@ jobs:
                   safe_text="${current_chunk//+/\\+}"
           
                   curl -s -X POST "https://lastfmmilestones.simonevalent2000.workers.dev/push" \
-                    -H "Content-Type: application/json" \
-                    --data-raw "{\"chatId\":\"$chat_id\",\"text\":\"$safe_text\"}"
+                    -F "chatId=$chat_id" \
+                    -F "text=$current_chunk"
                   sleep 0.2
                   current_chunk="$block"
               else
@@ -146,6 +146,6 @@ jobs:
               safe_text="${current_chunk//+/\\+}"
           
               curl -s -X POST "https://lastfmmilestones.simonevalent2000.workers.dev/push" \
-                -H "Content-Type: application/json" \
-                --data-raw "{\"chatId\":\"$chat_id\",\"text\":\"$safe_text\"}"
+                -F "chatId=$chat_id" \
+                -F "text=$current_chunk"
           fi
