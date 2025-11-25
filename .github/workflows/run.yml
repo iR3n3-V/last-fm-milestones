@@ -27,11 +27,6 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: notify start
-        run: |
-          curl -s -X POST "${{ secrets.WORKER_URL }}/push-start" \
-            -F "chatId=${{ secrets.TELEGRAM_CHAT_ID }}"
-
       - name: setup python
         uses: actions/setup-python@v6   # aggiornato alla v6 per cache nativa
         with:
@@ -157,5 +152,5 @@ jobs:
           
       - name: notify end
         run: |
-          curl -s -X POST "${{ secrets.WORKER_URL }}/push-end" \
+          curl -s -X POST "https://lastfmmilestones.simonevalent2000.workers.dev/push-end" \
             -F "chatId=${{ github.event.inputs.chatId }}"
