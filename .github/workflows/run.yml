@@ -24,8 +24,12 @@ jobs:
   run-milestone:
     runs-on: ubuntu-22.04
     steps:
-      - name: checkout
+      - name: checkout (minimal)
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1     # non scarica l'intera storia
+          lfs: false         # nessun file large file storage
+          submodules: false  # non clona submodules
 
       - name: setup python
         uses: actions/setup-python@v6   # aggiornato alla v6 per cache nativa
